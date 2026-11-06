@@ -16,7 +16,6 @@ namespace ToolSet.ViewModels
         public MainViewModel()
         {
             OpenDirectoryCommand = new RelayCommand(OpenDirectory);
-            ClearLogCommand = new RelayCommand(Log.Clear);
 
             Branches = new ObservableCollection<string> { "wc16_apkt01gh0.0.1" };
             SelectedBranch = Branches[0];
@@ -49,8 +48,6 @@ namespace ToolSet.ViewModels
         public ObservableCollection<string> Branches { get; }
 
         public ICommand OpenDirectoryCommand { get; }
-
-        public ICommand ClearLogCommand { get; }
 
         public string SelectedBranch
         {

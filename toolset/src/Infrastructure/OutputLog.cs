@@ -26,7 +26,5 @@ namespace ToolSet.Infrastructure
         public ObservableCollection<LogEntry> Entries { get; } = new ObservableCollection<LogEntry>();
 
         public void Write(string message) => Entries.Add(new LogEntry(DateTime.Now, message));
-
-        public void Clear() => Entries.Clear();
     }
 }

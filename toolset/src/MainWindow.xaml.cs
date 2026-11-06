@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Specialized;
 using System.Windows;
+using System.Windows.Threading;
 using ToolSet.ViewModels;
 
 namespace ToolSet
@@ -35,6 +36,12 @@ namespace ToolSet
         }
 
         private void OnLogEntriesChanged(object? sender, NotifyCollectionChangedEventArgs e)
+        {
+            // 等布局完成后再滚动，否则新增项尚未生成容器
+            Dispatcher.BeginInvoke(new Action(ScrollLogToEnd), DispatcherPriority.Loaded);
+        }
+
+        private void ScrollLogToEnd()
         {
             if (LogList.Items.Count > 0)
             {
