@@ -2,7 +2,7 @@
 
 桌面版开发工具集（WPF）。
 
-当前为**框架/布局阶段**：左侧模块导航、顶部分支选择、模块内容区、运行日志、状态栏已搭好，具体功能尚未接入。
+当前为**框架/布局阶段**：左侧模块导航、顶部分支选择、模块内容区、运行日志已搭好，具体功能尚未接入。
 
 ---
 
@@ -30,6 +30,7 @@
 ```
 toolset\
 ├── generate_vs.bat                  # 生成 src\ToolSet.sln（双击运行）
+├── build.sh                         # 编译 Debug 版 exe 到 build\（bash build.sh）
 ├── publish.bat                      # 发布自包含单文件 exe（双击运行）
 ├── gitpush.bat                      # 提交并推送
 ├── README.md
@@ -43,7 +44,7 @@ toolset\
     │   ├── ViewModelBase.cs         # INotifyPropertyChanged 基类
     │   ├── RelayCommand.cs          # ICommand 实现
     │   ├── OutputLog.cs             # 运行日志
-    │   └── IShell.cs                # 宿主接口（写日志 / 状态栏）
+    │   └── IShell.cs                # 宿主接口（写日志）
     ├── Styles\Theme.xaml            # 配色 + 全部控件模板
     ├── ViewModels\
     │   ├── MainViewModel.cs         # 模块列表、分支选择、打开目录
@@ -134,7 +135,7 @@ dotnet sln src\ToolSet.sln add src\ToolSet.csproj
 3. 在 `App.xaml` 注册 `<DataTemplate DataType="{x:Type vm:XXXViewModel}">`
 4. 在 `MainViewModel.Modules` 里加入该模块实例
 
-模块内需要写日志 / 改状态栏时，通过构造函数注入的 `IShell` 调用 `SetStatus(...)`（内部会同时写入运行日志）。
+模块内需要写日志时，通过构造函数注入的 `IShell` 访问 `Log`。
 
 ---
 
@@ -162,9 +163,8 @@ dotnet sln src\ToolSet.sln add src\ToolSet.csproj
 
 - 程序集名 / exe 名：`ToolSet`（`<AssemblyName>`）
 - 根命名空间：`ToolSet`（`<RootNamespace>`），子命名空间为 `ToolSet.Infrastructure`、`ToolSet.ViewModels`、`ToolSet.Views`
-- 版本号：改 csproj 的 `<Version>` 即可，状态栏右侧会自动显示（绑定 `MainViewModel.AppVersion`）
+- 版本号：改 csproj 的 `<Version>` 即可
 - 工具集路径 `MainViewModel.ToolSetPath` 目前**硬编码**为 `C:\data\ikun_01_cn\common\ToolSet`（「打开目录」按钮使用），后续计划改为读取配置文件（对应原 `scripts/config.ini`）
-- 顶部分支下拉框内容 `wc16_apkt01gh0.0.1` 为占位数据，后续从 SVN / 配置读取
 
 ---
 

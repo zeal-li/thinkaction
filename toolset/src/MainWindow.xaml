@@ -14,144 +14,114 @@
         Background="{StaticResource WindowBackgroundBrush}">
 
     <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="196" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
 
-        <Grid Grid.Row="0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="196" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-
-            <!-- ===== 左侧模块导航 ===== -->
-            <Border Grid.Column="0"
-                    Background="{StaticResource SurfaceBrush}"
-                    BorderBrush="{StaticResource LineBrush}"
-                    BorderThickness="0,0,1,0">
-                <DockPanel>
-                    <Border DockPanel.Dock="Top" Padding="20,22,20,18">
-                        <StackPanel>
-                            <TextBlock Text="ToolSet"
-                                       FontSize="18"
-                                       FontWeight="SemiBold"
-                                       Foreground="{StaticResource TextPrimaryBrush}" />
-                            <TextBlock Text="开发工具集"
-                                       Margin="0,3,0,0"
-                                       FontSize="12"
-                                       Foreground="{StaticResource TextMutedBrush}" />
-                        </StackPanel>
-                    </Border>
-
-                    <ItemsControl ItemsSource="{Binding Modules}" Margin="10,0,10,10">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <RadioButton Style="{StaticResource NavRadioButton}"
-                                             GroupName="ToolModules"
-                                             Content="{Binding Title}"
-                                             IsChecked="{Binding IsSelected, Mode=TwoWay}"
-                                             Margin="0,1" />
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </DockPanel>
-            </Border>
-
-            <!-- ===== 右侧工作区 ===== -->
-            <Grid Grid.Column="1">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="150" />
-                </Grid.RowDefinitions>
-
-                <!-- 顶部工具条：分支选择 + 打开目录 -->
-                <Border Grid.Row="0" Padding="20,16,20,12">
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="分支"
-                                   VerticalAlignment="Center"
-                                   Margin="0,0,10,0"
-                                   Foreground="{StaticResource TextSecondaryBrush}" />
-                        <ComboBox Style="{StaticResource AppComboBox}"
-                                  Width="230"
-                                  ItemsSource="{Binding Branches}"
-                                  SelectedItem="{Binding SelectedBranch}" />
-                        <Button Content="打开目录"
-                                Style="{StaticResource ToolbarButton}"
-                                Margin="10,0,0,0"
-                                Command="{Binding OpenDirectoryCommand}" />
-                        <TextBlock Text="仅做框架搭建，具体功能待接入"
-                                   Style="{StaticResource CaptionText}"
-                                   Margin="16,0,0,0" />
+        <!-- ===== 左侧模块导航 ===== -->
+        <Border Grid.Column="0"
+                Background="{StaticResource SurfaceBrush}"
+                BorderBrush="{StaticResource LineBrush}"
+                BorderThickness="0,0,1,0">
+            <DockPanel>
+                <Border DockPanel.Dock="Top" Padding="20,22,20,18">
+                    <StackPanel>
+                        <TextBlock Text="ToolSet"
+                                   FontSize="18"
+                                   FontWeight="SemiBold"
+                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                        <TextBlock Text="开发工具集"
+                                   Margin="0,3,0,0"
+                                   FontSize="12"
+                                   Foreground="{StaticResource TextMutedBrush}" />
                     </StackPanel>
                 </Border>
 
-                <!-- 模块内容 -->
-                <ContentControl Grid.Row="1"
-                                Margin="20,0,20,0"
-                                Content="{Binding SelectedModule}" />
-
-                <!-- 运行日志 -->
-                <Border Grid.Row="2"
-                        Margin="20,12,20,12"
-                        Style="{StaticResource SectionCard}"
-                        Padding="12,10">
-                    <DockPanel>
-                        <Grid DockPanel.Dock="Top" Margin="2,0,2,6">
-                            <TextBlock Text="运行日志"
-                                       FontSize="12"
-                                       Foreground="{StaticResource TextSecondaryBrush}"
-                                       VerticalAlignment="Center" />
-                            <Button Content="清空"
-                                    HorizontalAlignment="Right"
-                                    Style="{StaticResource ActionButton}"
-                                    MinWidth="56"
-                                    Height="24"
-                                    Padding="8,0"
-                                    Command="{Binding ClearLogCommand}" />
-                        </Grid>
-                        <ListBox x:Name="LogList"
-                                 Style="{StaticResource LogListBox}"
-                                 ItemsSource="{Binding Log.Entries}">
-                            <ListBox.ItemTemplate>
-                                <DataTemplate>
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="{Binding TimeText}"
-                                                   Width="62"
-                                                   FontSize="12"
-                                                   Foreground="{StaticResource TextMutedBrush}" />
-                                        <TextBlock Text="{Binding Message}"
-                                                   FontSize="12"
-                                                   Foreground="{StaticResource TextPrimaryBrush}"
-                                                   TextWrapping="Wrap" />
-                                    </StackPanel>
-                                </DataTemplate>
-                            </ListBox.ItemTemplate>
-                        </ListBox>
-                    </DockPanel>
-                </Border>
-            </Grid>
-        </Grid>
-
-        <!-- ===== 状态栏 ===== -->
-        <Border Grid.Row="1"
-                Height="30"
-                Background="{StaticResource SurfaceAltBrush}"
-                BorderBrush="{StaticResource LineBrush}"
-                BorderThickness="0,1,0,0">
-            <Grid Margin="14,0">
-                <TextBlock Text="{Binding StatusMessage}"
-                           FontSize="12"
-                           VerticalAlignment="Center"
-                           Foreground="{StaticResource TextSecondaryBrush}"
-                           TextTrimming="CharacterEllipsis" />
-                <TextBlock Text="{Binding AppVersion}"
-                           HorizontalAlignment="Right"
-                           VerticalAlignment="Center"
-                           FontSize="12"
-                           Foreground="{StaticResource TextMutedBrush}" />
-            </Grid>
+                <ItemsControl ItemsSource="{Binding Modules}" Margin="10,0,10,10">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <RadioButton Style="{StaticResource NavRadioButton}"
+                                         GroupName="ToolModules"
+                                         Content="{Binding Title}"
+                                         IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                         Margin="0,1" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </DockPanel>
         </Border>
+
+        <!-- ===== 右侧工作区 ===== -->
+        <Grid Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="150" />
+            </Grid.RowDefinitions>
+
+            <!-- 顶部工具条：分支选择 + 打开目录 -->
+            <Border Grid.Row="0" Padding="20,16,20,12">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="分支"
+                               VerticalAlignment="Center"
+                               Margin="0,0,10,0"
+                               Foreground="{StaticResource TextSecondaryBrush}" />
+                    <ComboBox Style="{StaticResource AppComboBox}"
+                              Width="230"
+                              ItemsSource="{Binding Branches}"
+                              SelectedItem="{Binding SelectedBranch}" />
+                    <Button Content="打开目录"
+                            Style="{StaticResource ToolbarButton}"
+                            Margin="10,0,0,0"
+                            Command="{Binding OpenDirectoryCommand}" />
+                </StackPanel>
+            </Border>
+
+            <!-- 模块内容 -->
+            <ContentControl Grid.Row="1"
+                            Margin="20,0,20,0"
+                            Content="{Binding SelectedModule}" />
+
+            <!-- 运行日志 -->
+            <Border Grid.Row="2"
+                    Margin="20,12,20,12"
+                    Style="{StaticResource SectionCard}"
+                    Padding="12,10">
+                <DockPanel>
+                    <Grid DockPanel.Dock="Top" Margin="2,0,2,6">
+                        <TextBlock Text="运行日志"
+                                   FontSize="12"
+                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   VerticalAlignment="Center" />
+                        <Button Content="清空"
+                                HorizontalAlignment="Right"
+                                Style="{StaticResource ActionButton}"
+                                MinWidth="56"
+                                Height="24"
+                                Padding="8,0"
+                                Command="{Binding ClearLogCommand}" />
+                    </Grid>
+                    <ListBox x:Name="LogList"
+                             Style="{StaticResource LogListBox}"
+                             ItemsSource="{Binding Log.Entries}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{Binding TimeText}"
+                                               Width="62"
+                                               FontSize="12"
+                                               Foreground="{StaticResource TextMutedBrush}" />
+                                    <TextBlock Text="{Binding Message}"
+                                               FontSize="12"
+                                               Foreground="{StaticResource TextPrimaryBrush}"
+                                               TextWrapping="Wrap" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+            </Border>
+        </Grid>
     </Grid>
 </Window>

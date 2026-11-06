@@ -1,7 +1,5 @@
-using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Reflection;
 using System.Windows.Input;
 using ToolSet.Infrastructure;
 
@@ -14,7 +12,6 @@ namespace ToolSet.ViewModels
 
         private ModuleViewModelBase _selectedModule = null!;
         private string _selectedBranch = string.Empty;
-        private string _statusMessage = "就绪";
 
         public MainViewModel()
         {
@@ -55,16 +52,6 @@ namespace ToolSet.ViewModels
 
         public ICommand ClearLogCommand { get; }
 
-        /// <summary>状态栏右侧显示的版本号，跟随 csproj 的 Version。</summary>
-        public string AppVersion
-        {
-            get
-            {
-                var version = Assembly.GetExecutingAssembly().GetName().Version;
-                return version == null ? string.Empty : $"v{version.Major}.{version.Minor}.{version.Build}";
-            }
-        }
-
         public string SelectedBranch
         {
             get => _selectedBranch;
@@ -75,18 +62,6 @@ namespace ToolSet.ViewModels
         {
             get => _selectedModule;
             private set => SetProperty(ref _selectedModule, value);
-        }
-
-        public string StatusMessage
-        {
-            get => _statusMessage;
-            private set => SetProperty(ref _statusMessage, value);
-        }
-
-        public void SetStatus(string message)
-        {
-            StatusMessage = message;
-            Log.Write(message);
         }
 
         private void OpenDirectory() => Process.Start("explorer.exe", ToolSetPath);

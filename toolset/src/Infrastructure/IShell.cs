@@ -6,8 +6,5 @@ namespace ToolSet.Infrastructure
     public interface IShell
     {
         OutputLog Log { get; }
-
-        /// <summary>更新底部状态栏文本。</summary>
-        void SetStatus(string message);
     }
 }
