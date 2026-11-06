@@ -15,7 +15,7 @@
 
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="220" />
+            <ColumnDefinition Width="235" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
@@ -23,7 +23,9 @@
         <Border Grid.Column="0"
                 Background="{StaticResource SurfaceBrush}"
                 BorderBrush="{StaticResource LineBrush}"
-                BorderThickness="0,0,1,0">
+                BorderThickness="1"
+                CornerRadius="8"
+                Margin="5,0,5,5">
             <DockPanel>
                 <Border DockPanel.Dock="Top" Padding="20,22,20,14">
                     <Grid>
@@ -68,12 +70,12 @@
 
             <!-- 模块内容 -->
             <ContentControl Grid.Row="1"
-                            Margin="20,12,20,12"
+                            Margin="0,5,5,5"
                             Content="{Binding SelectedModule}" />
 
             <!-- 运行日志 -->
             <Border Grid.Row="0"
-                    Margin="20,16,20,0"
+                    Margin="0,0,5,0"
                     Style="{StaticResource SectionCard}"
                     Padding="12,10">
                 <ListBox x:Name="LogList"
