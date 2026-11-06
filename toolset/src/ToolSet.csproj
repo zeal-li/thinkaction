@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <!-- 最低支持 VS 2022（17.8+）；若要兼容更早的 VS 2022，可改为 net6.0-windows -->
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
+    <AssemblyName>ToolSet</AssemblyName>
+    <RootNamespace>ToolSet</RootNamespace>
+    <Version>0.1.0</Version>
+    <!-- 允许在只装了更高版本运行时的机器上运行 -->
+    <RollForward>LatestMajor</RollForward>
+    <CheckEolTargetFramework>false</CheckEolTargetFramework>
+  </PropertyGroup>
+
+</Project>

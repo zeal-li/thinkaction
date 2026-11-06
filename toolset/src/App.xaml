@@ -1,0 +1,18 @@
+<Application x:Class="ToolSet.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:ToolSet.ViewModels"
+             xmlns:views="clr-namespace:ToolSet.Views">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Styles/Theme.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- 模块视图映射：新增模块时在这里登记 ViewModel -> View -->
+            <DataTemplate DataType="{x:Type vm:PlaceholderModuleViewModel}">
+                <views:PlaceholderModuleView />
+            </DataTemplate>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

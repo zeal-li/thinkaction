@@ -1,0 +1,17 @@
+# 编译产物
+bin/
+obj/
+publish/
+
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# 由 generate_vs.bat 生成，内容含随机工程 GUID，不入库
+ToolSet.sln
+
+# 其他
+*.log
