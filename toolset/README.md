@@ -30,6 +30,8 @@
 ```
 toolset\
 ├── generate_vs.bat                  # 生成 src\ToolSet.sln（双击运行）
+├── publish.bat                      # 发布自包含单文件 exe（双击运行）
+├── gitpush.bat                      # 提交并推送
 ├── README.md
 ├── .gitignore                       # 忽略 bin/ obj/ publish/ .vs/ *.user ToolSet.sln
 └── src\
@@ -73,6 +75,32 @@ src\obj\
 dotnet build src\ToolSet.sln -c Debug
 :: 产物: src\bin\Debug\net8.0-windows\ToolSet.exe
 ```
+
+---
+
+## 发布（分发到其他电脑）
+
+双击 `publish.bat`，产出 `publish\ToolSet.exe` —— **自包含单文件，约 70MB**，目标机不需要安装 .NET 运行时，Win10/11 x64 双击即可运行。
+
+```bat
+publish.bat              :: 默认 win-x64
+publish.bat win-arm64    :: 打 ARM64 版本
+```
+
+脚本做的事：
+
+```bat
+rd /s /q publish                                    :: 清掉旧产物
+dotnet publish src\ToolSet.csproj -c Release -r win-x64 ^
+    --self-contained true ^                          :: 运行时打进包里
+    -p:PublishSingleFile=true ^                      :: 单文件
+    -p:IncludeNativeLibrariesForSelfExtract=true ^   :: 原生库一起打包
+    -p:EnableCompressionInSingleFile=true ^          :: 压缩，150MB → 70MB
+    -p:DebugType=None -p:DebugSymbols=false ^        :: 不输出 pdb
+    -o publish
+```
+
+注意：`bin\` 下的产物是**框架依赖**版，只有 4 个文件（exe + dll + 2 个 json），拷过去必须配合目标机的 .NET 8+ Desktop Runtime 才能跑，不适合直接分发。
 
 ---
 
