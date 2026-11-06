@@ -15,7 +15,7 @@
 
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="196" />
+            <ColumnDefinition Width="220" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
@@ -25,16 +25,26 @@
                 BorderBrush="{StaticResource LineBrush}"
                 BorderThickness="0,0,1,0">
             <DockPanel>
-                <Border DockPanel.Dock="Top" Padding="20,22,20,18">
+                <Border DockPanel.Dock="Top" Padding="20,22,20,14">
                     <StackPanel>
-                        <TextBlock Text="ToolSet"
-                                   FontSize="18"
-                                   FontWeight="SemiBold"
-                                   Foreground="{StaticResource TextPrimaryBrush}" />
-                        <TextBlock Text="开发工具集"
-                                   Margin="0,3,0,0"
-                                   FontSize="12"
-                                   Foreground="{StaticResource TextMutedBrush}" />
+                        <Grid Margin="0,0,0,8">
+                            <TextBlock Text="项目"
+                                       VerticalAlignment="Center"
+                                       FontSize="12"
+                                       Foreground="{StaticResource TextSecondaryBrush}" />
+                            <Button Content="打开目录"
+                                    HorizontalAlignment="Right"
+                                    Style="{StaticResource ActionButton}"
+                                    Height="26"
+                                    MinWidth="0"
+                                    Padding="10,0"
+                                    FontSize="12"
+                                    Command="{Binding OpenDirectoryCommand}" />
+                        </Grid>
+                        <ComboBox Style="{StaticResource AppComboBox}"
+                                  MinWidth="0"
+                                  ItemsSource="{Binding Branches}"
+                                  SelectedItem="{Binding SelectedBranch}" />
                     </StackPanel>
                 </Border>
 
@@ -55,36 +65,17 @@
         <!-- ===== 右侧工作区 ===== -->
         <Grid Grid.Column="1">
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
                 <RowDefinition Height="150" />
             </Grid.RowDefinitions>
 
-            <!-- 顶部工具条：分支选择 + 打开目录 -->
-            <Border Grid.Row="0" Padding="20,16,20,12">
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="分支"
-                               VerticalAlignment="Center"
-                               Margin="0,0,10,0"
-                               Foreground="{StaticResource TextSecondaryBrush}" />
-                    <ComboBox Style="{StaticResource AppComboBox}"
-                              Width="230"
-                              ItemsSource="{Binding Branches}"
-                              SelectedItem="{Binding SelectedBranch}" />
-                    <Button Content="打开目录"
-                            Style="{StaticResource ToolbarButton}"
-                            Margin="10,0,0,0"
-                            Command="{Binding OpenDirectoryCommand}" />
-                </StackPanel>
-            </Border>
-
             <!-- 模块内容 -->
-            <ContentControl Grid.Row="1"
+            <ContentControl Grid.Row="0"
                             Margin="20,0,20,0"
                             Content="{Binding SelectedModule}" />
 
             <!-- 运行日志 -->
-            <Border Grid.Row="2"
+            <Border Grid.Row="1"
                     Margin="20,12,20,12"
                     Style="{StaticResource SectionCard}"
                     Padding="12,10">

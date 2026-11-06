@@ -30,7 +30,7 @@
 ```
 toolset\
 ├── generate_vs.bat                  # 生成 src\ToolSet.sln（双击运行）
-├── build.sh                         # 编译 Debug 版 exe 到 build\（bash build.sh）
+├── build.bat                        # 编译 Debug 版 exe 到 build\（双击运行）
 ├── publish.bat                      # 发布自包含单文件 exe（双击运行）
 ├── gitpush.bat                      # 提交并推送
 ├── README.md
