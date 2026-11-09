@@ -1,3 +1,4 @@
+using ToolSet.Infrastructure.Configuration;
 using ToolSet.ViewModels;
 
 namespace ToolSet.ViewModels.EnvironmentDeploy
@@ -10,11 +11,13 @@ namespace ToolSet.ViewModels.EnvironmentDeploy
         public EnvironmentDeployViewModel()
             : base("环境部署")
         {
+            Wsl = new SSHConfigViewModel(AppConfig.Current, "环境部署/WSL");
+            CentOS = new SSHConfigViewModel(AppConfig.Current, "环境部署/CentOS");
         }
 
-        public SSHConfigViewModel Wsl { get; } = new SSHConfigViewModel();
+        public SSHConfigViewModel Wsl { get; }
 
-        public SSHConfigViewModel CentOS { get; } = new SSHConfigViewModel();
+        public SSHConfigViewModel CentOS { get; }
 
         public MySqlConfigViewModel LocalMySql { get; } = new MySqlConfigViewModel();
     }

@@ -3,6 +3,10 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              FontSize="13">
 
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
+    </UserControl.Resources>
+
     <ScrollViewer VerticalScrollBarVisibility="Auto"
                   HorizontalScrollBarVisibility="Disabled">
         <StackPanel>
@@ -19,10 +23,11 @@
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="*" MaxWidth="200" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" MaxWidth="200" />
+                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
@@ -32,22 +37,43 @@
                                  Style="{StaticResource AppTextBox}"
                                  Text="{Binding Wsl.Hostname, UpdateSourceTrigger=PropertyChanged}" />
 
-                        <TextBlock Grid.Row="1" Grid.Column="0" Text="port" Style="{StaticResource FieldLabelText}" />
-                        <TextBox Grid.Row="1" Grid.Column="1"
+                        <TextBlock Grid.Row="0" Grid.Column="2" Text="port" Style="{StaticResource FieldLabelText}" Margin="24,0,10,8" />
+                        <TextBox Grid.Row="0" Grid.Column="3"
                                  Style="{StaticResource AppTextBox}"
                                  Text="{Binding Wsl.Port, UpdateSourceTrigger=PropertyChanged}" />
 
-                        <TextBlock Grid.Row="2" Grid.Column="0" Text="username" Style="{StaticResource FieldLabelText}" />
-                        <TextBox Grid.Row="2" Grid.Column="1"
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="username" Style="{StaticResource FieldLabelText}" />
+                        <TextBox Grid.Row="1" Grid.Column="1"
                                  Style="{StaticResource AppTextBox}"
                                  Text="{Binding Wsl.Username, UpdateSourceTrigger=PropertyChanged}" />
 
-                        <TextBlock Grid.Row="3" Grid.Column="0" Text="userkey" Style="{StaticResource FieldLabelText}" Margin="0,0,10,0" />
-                        <TextBox Grid.Row="3" Grid.Column="1"
+                        <TextBlock Grid.Row="1" Grid.Column="2" Text="userkey" Style="{StaticResource FieldLabelText}" Margin="24,0,10,8" />
+                        <TextBox Grid.Row="1" Grid.Column="3"
                                  Style="{StaticResource AppTextBox}"
-                                 Margin="0"
+                                 Margin="0,0,0,8"
                                  Text="{Binding Wsl.UserKey, UpdateSourceTrigger=PropertyChanged}" />
+                        <Button Grid.Row="1" Grid.Column="4"
+                                Content="浏览"
+                                Style="{StaticResource ActionButton}"
+                                MinWidth="64"
+                                Margin="8,0,0,8"
+                                Command="{Binding Wsl.BrowseUserKeyCommand}" />
                     </Grid>
+
+                    <StackPanel Orientation="Horizontal"
+                                HorizontalAlignment="Right"
+                                Margin="0,10,0,0"
+                                Visibility="{Binding Wsl.HasPendingChanges, Converter={StaticResource BoolToVisibility}}">
+                        <Button Content="取消"
+                                Style="{StaticResource ActionButton}"
+                                MinWidth="76"
+                                Margin="0,0,8,0"
+                                Command="{Binding Wsl.CancelEditCommand}" />
+                        <Button Content="确认"
+                                Style="{StaticResource ActionButton}"
+                                MinWidth="76"
+                                Command="{Binding Wsl.ConfirmEditCommand}" />
+                    </StackPanel>
                 </StackPanel>
             </Border>
 
@@ -63,10 +89,11 @@
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="*" MaxWidth="200" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" MaxWidth="200" />
+                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
@@ -76,22 +103,43 @@
                                  Style="{StaticResource AppTextBox}"
                                  Text="{Binding CentOS.Hostname, UpdateSourceTrigger=PropertyChanged}" />
 
-                        <TextBlock Grid.Row="1" Grid.Column="0" Text="port" Style="{StaticResource FieldLabelText}" />
-                        <TextBox Grid.Row="1" Grid.Column="1"
+                        <TextBlock Grid.Row="0" Grid.Column="2" Text="port" Style="{StaticResource FieldLabelText}" Margin="24,0,10,8" />
+                        <TextBox Grid.Row="0" Grid.Column="3"
                                  Style="{StaticResource AppTextBox}"
                                  Text="{Binding CentOS.Port, UpdateSourceTrigger=PropertyChanged}" />
 
-                        <TextBlock Grid.Row="2" Grid.Column="0" Text="username" Style="{StaticResource FieldLabelText}" />
-                        <TextBox Grid.Row="2" Grid.Column="1"
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="username" Style="{StaticResource FieldLabelText}" />
+                        <TextBox Grid.Row="1" Grid.Column="1"
                                  Style="{StaticResource AppTextBox}"
                                  Text="{Binding CentOS.Username, UpdateSourceTrigger=PropertyChanged}" />
 
-                        <TextBlock Grid.Row="3" Grid.Column="0" Text="userkey" Style="{StaticResource FieldLabelText}" Margin="0,0,10,0" />
-                        <TextBox Grid.Row="3" Grid.Column="1"
+                        <TextBlock Grid.Row="1" Grid.Column="2" Text="userkey" Style="{StaticResource FieldLabelText}" Margin="24,0,10,8" />
+                        <TextBox Grid.Row="1" Grid.Column="3"
                                  Style="{StaticResource AppTextBox}"
-                                 Margin="0"
+                                 Margin="0,0,0,8"
                                  Text="{Binding CentOS.UserKey, UpdateSourceTrigger=PropertyChanged}" />
+                        <Button Grid.Row="1" Grid.Column="4"
+                                Content="浏览"
+                                Style="{StaticResource ActionButton}"
+                                MinWidth="64"
+                                Margin="8,0,0,8"
+                                Command="{Binding CentOS.BrowseUserKeyCommand}" />
                     </Grid>
+
+                    <StackPanel Orientation="Horizontal"
+                                HorizontalAlignment="Right"
+                                Margin="0,10,0,0"
+                                Visibility="{Binding CentOS.HasPendingChanges, Converter={StaticResource BoolToVisibility}}">
+                        <Button Content="取消"
+                                Style="{StaticResource ActionButton}"
+                                MinWidth="76"
+                                Margin="0,0,8,0"
+                                Command="{Binding CentOS.CancelEditCommand}" />
+                        <Button Content="确认"
+                                Style="{StaticResource ActionButton}"
+                                MinWidth="76"
+                                Command="{Binding CentOS.ConfirmEditCommand}" />
+                    </StackPanel>
                 </StackPanel>
             </Border>
 
