@@ -24,6 +24,8 @@ namespace ToolSet.ViewModels
             {
                 new PlaceholderModuleViewModel("管理项目", "项目/分支的切换、目录维护等管理功能。"),
                 new PlaceholderModuleViewModel("辅助工具", "导出表、导出 Sproto、表结构导出等辅助功能。"),
+                new PlaceholderModuleViewModel("环境部署", "环境安装与部署流程（功能待定）。"),
+                new PlaceholderModuleViewModel("设置", "工具参数与个人偏好设置（功能待定）。"),
             };
 
             foreach (var module in Modules)
