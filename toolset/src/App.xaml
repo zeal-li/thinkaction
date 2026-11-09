@@ -1,8 +1,10 @@
 <Application x:Class="ToolSet.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:vm="clr-namespace:ToolSet.ViewModels"
-             xmlns:views="clr-namespace:ToolSet.Views">
+             xmlns:vmCommon="clr-namespace:ToolSet.ViewModels.Common"
+             xmlns:vmEnv="clr-namespace:ToolSet.ViewModels.EnvironmentDeploy"
+             xmlns:viewsCommon="clr-namespace:ToolSet.Views.Common"
+             xmlns:viewsEnv="clr-namespace:ToolSet.Views.EnvironmentDeploy">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -10,12 +12,12 @@
             </ResourceDictionary.MergedDictionaries>
 
             <!-- 模块视图映射：新增模块时在这里登记 ViewModel -> View -->
-            <DataTemplate DataType="{x:Type vm:PlaceholderModuleViewModel}">
-                <views:PlaceholderModuleView />
+            <DataTemplate DataType="{x:Type vmCommon:PlaceholderModuleViewModel}">
+                <viewsCommon:PlaceholderModuleView />
             </DataTemplate>
 
-            <DataTemplate DataType="{x:Type vm:EnvironmentDeployViewModel}">
-                <views:EnvironmentDeployView />
+            <DataTemplate DataType="{x:Type vmEnv:EnvironmentDeployViewModel}">
+                <viewsEnv:EnvironmentDeployView />
             </DataTemplate>
         </ResourceDictionary>
     </Application.Resources>

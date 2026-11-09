@@ -1,11 +1,11 @@
 using ToolSet.Infrastructure;
 
-namespace ToolSet.ViewModels
+namespace ToolSet.ViewModels.EnvironmentDeploy
 {
     /// <summary>
-    /// 单个环境的连接配置（hostname / port / username / userkey）。
+    /// 单个环境的 SSH 连接配置（hostname / port / username / userkey）。
     /// </summary>
-    public sealed class RemoteHostConfigViewModel : ViewModelBase
+    public sealed class SSHConfigViewModel : ViewModelBase
     {
         private string _hostname = string.Empty;
         private string _port = string.Empty;

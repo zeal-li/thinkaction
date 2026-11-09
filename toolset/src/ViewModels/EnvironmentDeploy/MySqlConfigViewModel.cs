@@ -1,11 +1,11 @@
 using ToolSet.Infrastructure;
 
-namespace ToolSet.ViewModels
+namespace ToolSet.ViewModels.EnvironmentDeploy
 {
     /// <summary>
     /// 本地 MySQL 配置（mysqlpath / username / passwd）。
     /// </summary>
-    public sealed class LocalMySqlConfigViewModel : ViewModelBase
+    public sealed class MySqlConfigViewModel : ViewModelBase
     {
         private string _mysqlPath = string.Empty;
         private string _username = string.Empty;

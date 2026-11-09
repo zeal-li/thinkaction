@@ -1,4 +1,4 @@
-<UserControl x:Class="ToolSet.Views.EnvironmentDeployView"
+<UserControl x:Class="ToolSet.Views.EnvironmentDeploy.EnvironmentDeployView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              FontSize="13">

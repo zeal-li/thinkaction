@@ -1,4 +1,6 @@
-namespace ToolSet.ViewModels
+using ToolSet.ViewModels;
+
+namespace ToolSet.ViewModels.Common
 {
     /// <summary>
     /// 尚未实现的模块占位页。

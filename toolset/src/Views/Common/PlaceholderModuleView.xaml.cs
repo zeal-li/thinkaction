@@ -1,6 +1,6 @@
 using System.Windows.Controls;
 
-namespace ToolSet.Views
+namespace ToolSet.Views.Common
 {
     public partial class PlaceholderModuleView : UserControl
     {

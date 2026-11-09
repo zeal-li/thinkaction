@@ -53,13 +53,17 @@ toolset\
     ├── ViewModels\
     │   ├── MainViewModel.cs         # 模块列表、分支选择、打开目录
     │   ├── ModuleViewModelBase.cs   # 模块基类
-    │   ├── PlaceholderModuleViewModel.cs
-    │   ├── EnvironmentDeployViewModel.cs    # 环境部署模块
-    │   ├── RemoteHostConfigViewModel.cs     # 单个环境的连接配置
-    │   └── LocalMySqlConfigViewModel.cs     # 本地 MySQL 配置
+    │   ├── Common\                  # 多个模块共用
+    │   │   └── PlaceholderModuleViewModel.cs
+    │   └── EnvironmentDeploy\       # 左侧「环境部署」
+    │       ├── EnvironmentDeployViewModel.cs
+    │       ├── SSHConfigViewModel.cs         # WSL / CentOS 的 SSH 连接配置
+    │       └── MySqlConfigViewModel.cs      # 本地 MySQL 配置
     └── Views\
-        ├── PlaceholderModuleView.xaml(.cs)
-        └── EnvironmentDeployView.xaml(.cs)  # 环境部署：WSL / CentOS 配置卡片
+        ├── Common\                  # 多个模块共用
+        │   └── PlaceholderModuleView.xaml(.cs)
+        └── EnvironmentDeploy\       # 左侧「环境部署」
+            └── EnvironmentDeployView.xaml(.cs)  # WSL / CentOS / MySQL 配置卡片
 ```
 
 编译产物（已忽略）：
@@ -138,9 +142,9 @@ dotnet sln src\ToolSet.sln add src\ToolSet.csproj
 
 ### 新增功能模块（左侧导航项）
 
-1. 继承 `ModuleViewModelBase` 写模块 ViewModel
-2. 新建对应 `UserControl`（放在 `Views\`）
-3. 在 `App.xaml` 注册 `<DataTemplate DataType="{x:Type vm:XXXViewModel}">`
+1. 继承 `ModuleViewModelBase` 写模块 ViewModel，放在 `ViewModels\<模块名>\`，命名空间同名（如 `ToolSet.ViewModels.ManagementProject`）
+2. 新建对应 `UserControl`（放在 `Views\<模块名>\`，命名空间如 `ToolSet.Views.ManagementProject`）
+3. 在 `App.xaml` 的 `xmlns:` 里加对应 `clr-namespace`，注册 `<DataTemplate DataType="{x:Type vmXxx:XXXViewModel}">`
 4. 在 `MainViewModel.Modules` 里加入该模块实例
 
 模块内需要写日志时，通过构造函数注入的 `IShell` 访问 `Log`。
@@ -198,7 +202,7 @@ config.Remove("辅助工具/导表/线程数");
 ## 配置说明
 
 - 程序集名 / exe 名：`ToolSet`（`<AssemblyName>`）
-- 根命名空间：`ToolSet`（`<RootNamespace>`），子命名空间为 `ToolSet.Infrastructure`、`ToolSet.ViewModels`、`ToolSet.Views`
+- 根命名空间：`ToolSet`（`<RootNamespace>`），子命名空间与目录一一对应：`ToolSet.Infrastructure`、`ToolSet.Infrastructure.Configuration`、`ToolSet.ViewModels`、`ToolSet.ViewModels.Common`、`ToolSet.ViewModels.EnvironmentDeploy`、`ToolSet.Views.Common`、`ToolSet.Views.EnvironmentDeploy`
 - 版本号：改 csproj 的 `<Version>` 即可
 - 工具集路径 `MainViewModel.ToolSetPath` 目前**硬编码**为 `C:\data\ikun_01_cn\common\ToolSet`（「打开目录」按钮使用），后续计划改为读取配置文件（对应原 `scripts/config.ini`）
 
