@@ -5,13 +5,12 @@
 
     <ScrollViewer VerticalScrollBarVisibility="Auto"
                   HorizontalScrollBarVisibility="Disabled">
-        <WrapPanel Orientation="Horizontal"
-                   Margin="0,0,0,-12">
+        <StackPanel>
 
             <!-- ===== WSL 配置 ===== -->
             <Border Style="{StaticResource SectionCard}"
-                    Width="330"
-                    Margin="0,0,12,12">
+                    HorizontalAlignment="Stretch"
+                    Margin="0,0,0,12">
                 <StackPanel>
                     <TextBlock Text="WSL 配置"
                                Style="{StaticResource CardTitleText}" />
@@ -19,7 +18,7 @@
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" MaxWidth="200" />
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
@@ -54,8 +53,8 @@
 
             <!-- ===== CentOS 配置 ===== -->
             <Border Style="{StaticResource SectionCard}"
-                    Width="330"
-                    Margin="0,0,12,12">
+                    HorizontalAlignment="Stretch"
+                    Margin="0,0,0,12">
                 <StackPanel>
                     <TextBlock Text="CentOS 配置"
                                Style="{StaticResource CardTitleText}" />
@@ -63,7 +62,7 @@
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" MaxWidth="200" />
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
@@ -98,8 +97,8 @@
 
             <!-- ===== 本地 MySQL 配置 ===== -->
             <Border Style="{StaticResource SectionCard}"
-                    Width="330"
-                    Margin="0,0,12,12">
+                    HorizontalAlignment="Stretch"
+                    Margin="0,0,0,12">
                 <StackPanel>
                     <TextBlock Text="本地 MySQL 配置"
                                Style="{StaticResource CardTitleText}" />
@@ -107,7 +106,7 @@
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" MaxWidth="200" />
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
@@ -134,6 +133,6 @@
                 </StackPanel>
             </Border>
 
-        </WrapPanel>
+        </StackPanel>
     </ScrollViewer>
 </UserControl>
