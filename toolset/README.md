@@ -44,7 +44,11 @@ toolset\
     │   ├── ViewModelBase.cs         # INotifyPropertyChanged 基类
     │   ├── RelayCommand.cs          # ICommand 实现
     │   ├── OutputLog.cs             # 运行日志
-    │   └── IShell.cs                # 宿主接口（写日志）
+    │   ├── IShell.cs                # 宿主接口（写日志、读写配置）
+    │   └── Configuration\           # 通用分层配置读写
+    │       ├── IConfigService.cs    # 配置接口
+    │       ├── JsonConfigService.cs # JSON 文件实现
+    │       └── AppConfig.cs         # 全局默认实例（exe\config\config.json）
     ├── Styles\Theme.xaml            # 配色 + 全部控件模板
     ├── ViewModels\
     │   ├── MainViewModel.cs         # 模块列表、分支选择、打开目录
@@ -136,6 +140,34 @@ dotnet sln src\ToolSet.sln add src\ToolSet.csproj
 4. 在 `MainViewModel.Modules` 里加入该模块实例
 
 模块内需要写日志时，通过构造函数注入的 `IShell` 访问 `Log`。
+
+---
+
+## 通用配置读写
+
+`IConfigService`（默认实现 `JsonConfigService`，无第三方依赖）按「节点路径」读写分层配置，分组可以无限嵌套：
+
+```csharp
+var config = AppConfig.Current;                 // 或使用注入的 IShell.Config
+
+config.Set("辅助工具/导表/输出目录", @"D:\out");  // 分组不存在时自动创建
+string dir = config.Get("辅助工具/导表/输出目录");
+int threads = config.GetInt("辅助工具/导表/线程数");
+bool enabled = config.GetBool("辅助工具/导表/启用");
+
+var keys = config.GetKeys("辅助工具/导表");       // 直接子节点名（含子分组）
+var values = config.GetValues("辅助工具/导表");   // 直接子节点的值（跳过子分组）
+
+config.SetValues("辅助工具/导表", new Dictionary<string, string> { ["输出目录"] = dir });
+config.Remove("辅助工具/导表/线程数");
+```
+
+- 路径用 `/` 分隔，节点名里不能含 `/`
+- 值统一按字符串保存，`GetInt` / `GetBool` / `GetDouble` 负责转换
+- 配置值不能为 `null`（`Set` / `SetValues` 直接抛 `ArgumentNullException`），空字符串是合法值
+- `AutoSave` 默认 `true`（每次 `Set` / `Remove` 立即落盘）；批量写入用 `SetValues`，或先置 `AutoSave = false` 再手动 `Save()`
+- 文件位置：exe 同级 `config/config.json`；手写时允许注释和尾随逗号，保存时会被重写为缩进 JSON
+- 不做静默兜底：读取不存在的节点抛 `KeyNotFoundException`，需要判空请用 `Find` / `Contains`
 
 ---
 

@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Windows.Input;
 using ToolSet.Infrastructure;
+using ToolSet.Infrastructure.Configuration;
 
 namespace ToolSet.ViewModels
 {
@@ -44,6 +45,8 @@ namespace ToolSet.ViewModels
         }
 
         public OutputLog Log { get; } = new OutputLog();
+
+        public IConfigService Config { get; } = AppConfig.Current;
 
         public ObservableCollection<ModuleViewModelBase> Modules { get; }
 

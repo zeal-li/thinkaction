@@ -1,3 +1,5 @@
+using ToolSet.Infrastructure.Configuration;
+
 namespace ToolSet.Infrastructure
 {
     /// <summary>
@@ -6,5 +8,7 @@ namespace ToolSet.Infrastructure
     public interface IShell
     {
         OutputLog Log { get; }
+
+        IConfigService Config { get; }
     }
 }
