@@ -19,5 +19,15 @@ if errorlevel 1 (
 )
 
 echo.
+echo Copying scripts...
+if exist "build\scripts" rd /s /q "build\scripts"
+xcopy "scripts" "build\scripts" /e /i /y >nul
+if errorlevel 1 (
+    echo [ERROR] Copy scripts failed.
+    pause
+    exit /b 1
+)
+
+echo.
 echo [OK] Output: %~dp0build\ToolSet.exe
 pause

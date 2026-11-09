@@ -24,11 +24,6 @@ if not exist "src\ToolSet.csproj" (
     exit /b 1
 )
 
-if exist "publish" (
-    echo Cleaning old output...
-    rd /s /q "publish"
-)
-
 echo Publishing (%RID%, self-contained, single file)...
 echo.
 dotnet publish src\ToolSet.csproj ^
@@ -45,6 +40,17 @@ dotnet publish src\ToolSet.csproj ^
 if errorlevel 1 (
     echo.
     echo [ERROR] Publish failed, see the message above.
+    pause
+    exit /b 1
+)
+
+echo.
+echo Copying scripts...
+if exist "publish\scripts" rd /s /q "publish\scripts"
+xcopy "scripts" "publish\scripts" /e /i /y >nul
+if errorlevel 1 (
+    echo.
+    echo [ERROR] Copy scripts failed, see the message above.
     pause
     exit /b 1
 )
