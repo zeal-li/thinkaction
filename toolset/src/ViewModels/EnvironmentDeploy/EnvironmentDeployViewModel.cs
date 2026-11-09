@@ -11,8 +11,8 @@ namespace ToolSet.ViewModels.EnvironmentDeploy
         public EnvironmentDeployViewModel()
             : base("环境部署")
         {
-            Wsl = new SSHConfigViewModel(AppConfig.Current, "环境部署/WSL");
-            CentOS = new SSHConfigViewModel(AppConfig.Current, "环境部署/CentOS");
+            Wsl = new SSHConfigViewModel(AppConfig.Current, "环境部署/WSL_SSH_配置");
+            CentOS = new SSHConfigViewModel(AppConfig.Current, "环境部署/Centos_SSH_配置");
         }
 
         public SSHConfigViewModel Wsl { get; }

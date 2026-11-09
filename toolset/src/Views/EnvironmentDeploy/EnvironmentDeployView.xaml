@@ -11,12 +11,12 @@
                   HorizontalScrollBarVisibility="Disabled">
         <StackPanel>
 
-            <!-- ===== WSL 配置 ===== -->
+            <!-- ===== WSL_SSH_配置 ===== -->
             <Border Style="{StaticResource SectionCard}"
                     HorizontalAlignment="Stretch"
                     Margin="0,0,0,12">
                 <StackPanel>
-                    <TextBlock Text="WSL 配置"
+                    <TextBlock Text="WSL_SSH_配置"
                                Style="{StaticResource CardTitleText}" />
 
                     <Grid>
@@ -77,12 +77,12 @@
                 </StackPanel>
             </Border>
 
-            <!-- ===== CentOS 配置 ===== -->
+            <!-- ===== Centos_SSH_配置 ===== -->
             <Border Style="{StaticResource SectionCard}"
                     HorizontalAlignment="Stretch"
                     Margin="0,0,0,12">
                 <StackPanel>
-                    <TextBlock Text="CentOS 配置"
+                    <TextBlock Text="Centos_SSH_配置"
                                Style="{StaticResource CardTitleText}" />
 
                     <Grid>
