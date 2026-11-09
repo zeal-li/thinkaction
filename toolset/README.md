@@ -2,7 +2,7 @@
 
 桌面版开发工具集（WPF）。
 
-当前为**框架/布局阶段**：左侧模块导航、顶部分支选择、模块内容区、运行日志已搭好，具体功能尚未接入。
+当前为**框架/布局阶段**：左侧模块导航、顶部分支选择、模块内容区已搭好，具体功能尚未接入。
 
 ---
 
@@ -43,8 +43,7 @@ toolset\
     ├── Infrastructure\              # 框架底座
     │   ├── ViewModelBase.cs         # INotifyPropertyChanged 基类
     │   ├── RelayCommand.cs          # ICommand 实现
-    │   ├── OutputLog.cs             # 运行日志
-    │   ├── IShell.cs                # 宿主接口（写日志、读写配置）
+    │   ├── IShell.cs                # 宿主接口（读写配置）
     │   └── Configuration\           # 通用分层配置读写
     │       ├── IConfigService.cs    # 配置接口
     │       ├── JsonConfigService.cs # JSON 文件实现
@@ -148,8 +147,6 @@ dotnet sln src\ToolSet.sln add src\ToolSet.csproj
 3. 在 `App.xaml` 的 `xmlns:` 里加对应 `clr-namespace`，注册 `<DataTemplate DataType="{x:Type vmXxx:XXXViewModel}">`
 4. 在 `MainViewModel.Modules` 里加入该模块实例
 
-模块内需要写日志时，通过构造函数注入的 `IShell` 访问 `Log`。
-
 ---
 
 ## 通用配置读写
@@ -211,7 +208,6 @@ config.Remove("辅助工具/导表/线程数");
 
 ## 开发注意事项
 
-- **日志的线程约束**：`OutputLog.Entries` 是 `ObservableCollection`，只能在 UI 线程修改。后续接异步命令执行时，回调里必须先 `Application.Current.Dispatcher.Invoke(...)` 再写日志，否则会抛跨线程异常。
 - **不加兜底逻辑**：路径不存在、进程启动失败等情况按设计直接抛异常暴露，不做静默降级或包装提示。
 - **样式复用**：`Styles\Theme.xaml` 中 `AppCheckBox`、`SectionTitleText` 目前无引用，是为后续模块的「复选框 + 分组标题」预留，新模块可直接 `{StaticResource ...}` 使用。
 - **XAML 与命名空间**：改命名空间时必须同步修改 `.xaml` 里的 `x:Class` 与 `clr-namespace`，否则编译期报找不到类型。
@@ -223,5 +219,5 @@ config.Remove("辅助工具/导表/线程数");
 - [ ] 接入配置文件（`config.ini`）读取项目名、SSH、MySQL、导表路径等
 - [ ] 「管理项目」模块
 - [ ] 「辅助工具」模块（导出表 / 导出 Sproto / 表结构导出）
-- [ ] 命令执行器：调用外部进程并把输出实时写入运行日志
+- [ ] 命令执行器：调用外部进程并处理输出
 - [x] 应用图标（`Assets\toolset.ico`，16~256 多尺寸）

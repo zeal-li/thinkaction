@@ -64,40 +64,9 @@
 
         <!-- ===== 右侧工作区 ===== -->
         <Grid Grid.Column="1">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="150" />
-                <RowDefinition Height="*" />
-            </Grid.RowDefinitions>
-
             <!-- 模块内容 -->
-            <ContentControl Grid.Row="1"
-                            Margin="0,5,5,5"
+            <ContentControl Margin="0,5,5,5"
                             Content="{Binding SelectedModule}" />
-
-            <!-- 运行日志 -->
-            <Border Grid.Row="0"
-                    Margin="0,0,5,0"
-                    Style="{StaticResource SectionCard}"
-                    Padding="12,10">
-                <ListBox x:Name="LogList"
-                         Style="{StaticResource LogListBox}"
-                         ItemsSource="{Binding Log.Entries}">
-                    <ListBox.ItemTemplate>
-                        <DataTemplate>
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="{Binding TimeText}"
-                                           Width="62"
-                                           FontSize="12"
-                                           Foreground="{StaticResource TextMutedBrush}" />
-                                <TextBlock Text="{Binding Message}"
-                                           FontSize="12"
-                                           Foreground="{StaticResource TextPrimaryBrush}"
-                                           TextWrapping="Wrap" />
-                            </StackPanel>
-                        </DataTemplate>
-                    </ListBox.ItemTemplate>
-                </ListBox>
-            </Border>
         </Grid>
     </Grid>
 </Window>

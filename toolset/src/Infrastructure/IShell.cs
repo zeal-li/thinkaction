@@ -7,8 +7,6 @@ namespace ToolSet.Infrastructure
     /// </summary>
     public interface IShell
     {
-        OutputLog Log { get; }
-
         IConfigService Config { get; }
     }
 }
