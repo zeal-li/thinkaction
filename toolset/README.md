@@ -53,9 +53,13 @@ toolset\
     ├── ViewModels\
     │   ├── MainViewModel.cs         # 模块列表、分支选择、打开目录
     │   ├── ModuleViewModelBase.cs   # 模块基类
-    │   └── PlaceholderModuleViewModel.cs
+    │   ├── PlaceholderModuleViewModel.cs
+    │   ├── EnvironmentDeployViewModel.cs    # 环境部署模块
+    │   ├── RemoteHostConfigViewModel.cs     # 单个环境的连接配置
+    │   └── LocalMySqlConfigViewModel.cs     # 本地 MySQL 配置
     └── Views\
-        └── PlaceholderModuleView.xaml(.cs)
+        ├── PlaceholderModuleView.xaml(.cs)
+        └── EnvironmentDeployView.xaml(.cs)  # 环境部署：WSL / CentOS 配置卡片
 ```
 
 编译产物（已忽略）：

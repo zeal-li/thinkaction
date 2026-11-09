@@ -1,0 +1,139 @@
+<UserControl x:Class="ToolSet.Views.EnvironmentDeployView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             FontSize="13">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto"
+                  HorizontalScrollBarVisibility="Disabled">
+        <WrapPanel Orientation="Horizontal"
+                   Margin="0,0,0,-12">
+
+            <!-- ===== WSL 配置 ===== -->
+            <Border Style="{StaticResource SectionCard}"
+                    Width="330"
+                    Margin="0,0,12,12">
+                <StackPanel>
+                    <TextBlock Text="WSL 配置"
+                               Style="{StaticResource CardTitleText}" />
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="hostname" Style="{StaticResource FieldLabelText}" />
+                        <TextBox Grid.Row="0" Grid.Column="1"
+                                 Style="{StaticResource AppTextBox}"
+                                 Text="{Binding Wsl.Hostname, UpdateSourceTrigger=PropertyChanged}" />
+
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="port" Style="{StaticResource FieldLabelText}" />
+                        <TextBox Grid.Row="1" Grid.Column="1"
+                                 Style="{StaticResource AppTextBox}"
+                                 Text="{Binding Wsl.Port, UpdateSourceTrigger=PropertyChanged}" />
+
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="username" Style="{StaticResource FieldLabelText}" />
+                        <TextBox Grid.Row="2" Grid.Column="1"
+                                 Style="{StaticResource AppTextBox}"
+                                 Text="{Binding Wsl.Username, UpdateSourceTrigger=PropertyChanged}" />
+
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="userkey" Style="{StaticResource FieldLabelText}" Margin="0,0,10,0" />
+                        <TextBox Grid.Row="3" Grid.Column="1"
+                                 Style="{StaticResource AppTextBox}"
+                                 Margin="0"
+                                 Text="{Binding Wsl.UserKey, UpdateSourceTrigger=PropertyChanged}" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- ===== CentOS 配置 ===== -->
+            <Border Style="{StaticResource SectionCard}"
+                    Width="330"
+                    Margin="0,0,12,12">
+                <StackPanel>
+                    <TextBlock Text="CentOS 配置"
+                               Style="{StaticResource CardTitleText}" />
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="hostname" Style="{StaticResource FieldLabelText}" />
+                        <TextBox Grid.Row="0" Grid.Column="1"
+                                 Style="{StaticResource AppTextBox}"
+                                 Text="{Binding CentOS.Hostname, UpdateSourceTrigger=PropertyChanged}" />
+
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="port" Style="{StaticResource FieldLabelText}" />
+                        <TextBox Grid.Row="1" Grid.Column="1"
+                                 Style="{StaticResource AppTextBox}"
+                                 Text="{Binding CentOS.Port, UpdateSourceTrigger=PropertyChanged}" />
+
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="username" Style="{StaticResource FieldLabelText}" />
+                        <TextBox Grid.Row="2" Grid.Column="1"
+                                 Style="{StaticResource AppTextBox}"
+                                 Text="{Binding CentOS.Username, UpdateSourceTrigger=PropertyChanged}" />
+
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="userkey" Style="{StaticResource FieldLabelText}" Margin="0,0,10,0" />
+                        <TextBox Grid.Row="3" Grid.Column="1"
+                                 Style="{StaticResource AppTextBox}"
+                                 Margin="0"
+                                 Text="{Binding CentOS.UserKey, UpdateSourceTrigger=PropertyChanged}" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- ===== 本地 MySQL 配置 ===== -->
+            <Border Style="{StaticResource SectionCard}"
+                    Width="330"
+                    Margin="0,0,12,12">
+                <StackPanel>
+                    <TextBlock Text="本地 MySQL 配置"
+                               Style="{StaticResource CardTitleText}" />
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="mysqlpath" Style="{StaticResource FieldLabelText}" />
+                        <TextBox Grid.Row="0" Grid.Column="1"
+                                 Style="{StaticResource AppTextBox}"
+                                 Text="{Binding LocalMySql.MysqlPath, UpdateSourceTrigger=PropertyChanged}" />
+
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="username" Style="{StaticResource FieldLabelText}" />
+                        <TextBox Grid.Row="1" Grid.Column="1"
+                                 Style="{StaticResource AppTextBox}"
+                                 Text="{Binding LocalMySql.Username, UpdateSourceTrigger=PropertyChanged}" />
+
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="passwd" Style="{StaticResource FieldLabelText}" Margin="0,0,10,0" />
+                        <TextBox Grid.Row="2" Grid.Column="1"
+                                 Style="{StaticResource AppTextBox}"
+                                 Margin="0"
+                                 Text="{Binding LocalMySql.Passwd, UpdateSourceTrigger=PropertyChanged}" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+        </WrapPanel>
+    </ScrollViewer>
+</UserControl>

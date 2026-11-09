@@ -23,7 +23,7 @@ namespace ToolSet.ViewModels
 
             Modules = new ObservableCollection<ModuleViewModelBase>
             {
-                new PlaceholderModuleViewModel("环境部署", "环境安装与部署流程（功能待定）。"),
+                new EnvironmentDeployViewModel(),
                 new PlaceholderModuleViewModel("管理项目", "项目/分支的切换、目录维护等管理功能。"),
                 new PlaceholderModuleViewModel("辅助工具", "导出表、导出 Sproto、表结构导出等辅助功能。"),
             };

@@ -7,7 +7,7 @@ echo   ToolSet - Build Debug
 echo ==========================================================
 echo.
 
-if exist "build" rd /s /q "build"
+if not exist "build" mkdir "build"
 
 dotnet build src\ToolSet.csproj -c Debug -o build --nologo
 
