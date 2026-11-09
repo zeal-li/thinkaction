@@ -13,6 +13,7 @@
     <SolidColorBrush x:Key="AccentBrush" Color="#2F6FED" />
     <SolidColorBrush x:Key="AccentSoftBrush" Color="#EEF3FF" />
     <SolidColorBrush x:Key="AccentPressedBrush" Color="#DCE7FF" />
+    <SolidColorBrush x:Key="NavSelectedBrush" Color="#2F6FED" />
 
     <!-- ============ 文本 ============ -->
     <Style x:Key="SectionTitleText" TargetType="TextBlock">
@@ -50,31 +51,16 @@
                             Background="Transparent"
                             CornerRadius="6"
                             Padding="{TemplateBinding Padding}">
-                        <StackPanel Orientation="Horizontal">
-                            <Grid Width="15" Height="15" VerticalAlignment="Center">
-                                <Ellipse x:Name="Ring"
-                                         Stroke="{StaticResource LineStrongBrush}"
-                                         StrokeThickness="1.4"
-                                         Fill="Transparent" />
-                                <Ellipse x:Name="Dot"
-                                         Width="7"
-                                         Height="7"
-                                         Fill="{StaticResource AccentBrush}"
-                                         Visibility="Collapsed" />
-                            </Grid>
-                            <ContentPresenter Margin="10,0,0,0"
-                                              VerticalAlignment="Center"
-                                              TextElement.Foreground="{TemplateBinding Foreground}" />
-                        </StackPanel>
+                        <ContentPresenter VerticalAlignment="Center"
+                                          TextElement.Foreground="{TemplateBinding Foreground}" />
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="Root" Property="Background" Value="#F5F7FA" />
                         </Trigger>
                         <Trigger Property="IsChecked" Value="True">
-                            <Setter TargetName="Root" Property="Background" Value="{StaticResource AccentSoftBrush}" />
-                            <Setter TargetName="Ring" Property="Stroke" Value="{StaticResource AccentBrush}" />
-                            <Setter TargetName="Dot" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="Root" Property="Background" Value="{StaticResource NavSelectedBrush}" />
+                            <Setter Property="Foreground" Value="White" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
