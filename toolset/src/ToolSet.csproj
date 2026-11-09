@@ -8,10 +8,16 @@
     <Nullable>enable</Nullable>
     <AssemblyName>ToolSet</AssemblyName>
     <RootNamespace>ToolSet</RootNamespace>
+    <ApplicationIcon>Assets\toolset.ico</ApplicationIcon>
     <Version>0.1.0</Version>
     <!-- 允许在只装了更高版本运行时的机器上运行 -->
     <RollForward>LatestMajor</RollForward>
     <CheckEolTargetFramework>false</CheckEolTargetFramework>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- 同一份 ico 同时供 exe 图标和窗口图标使用 -->
+    <Resource Include="Assets\toolset.ico" />
+  </ItemGroup>
 
 </Project>

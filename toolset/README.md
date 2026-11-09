@@ -49,6 +49,7 @@ toolset\
     │       ├── IConfigService.cs    # 配置接口
     │       ├── JsonConfigService.cs # JSON 文件实现
     │       └── AppConfig.cs         # 全局默认实例（exe\config\config.json）
+    ├── Assets\toolset.ico           # 应用图标（exe + 窗口共用）
     ├── Styles\Theme.xaml            # 配色 + 全部控件模板
     ├── ViewModels\
     │   ├── MainViewModel.cs         # 模块列表、分支选择、打开目录
@@ -223,4 +224,4 @@ config.Remove("辅助工具/导表/线程数");
 - [ ] 「管理项目」模块
 - [ ] 「辅助工具」模块（导出表 / 导出 Sproto / 表结构导出）
 - [ ] 命令执行器：调用外部进程并把输出实时写入运行日志
-- [ ] 应用图标（当前为 VS 默认空白图标）
+- [x] 应用图标（`Assets\toolset.ico`，16~256 多尺寸）
