@@ -20,4 +20,12 @@
     <Resource Include="Assets\toolset.ico" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- 把 bat 脚本带到输出目录，运行时从 exe 同级的 scripts 目录调用 -->
+    <None Include="..\scripts\**\*.*"
+          Exclude="..\scripts\tmp\**"
+          Link="scripts\%(RecursiveDir)%(Filename)%(Extension)"
+          CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

@@ -1,4 +1,5 @@
 using ToolSet.Infrastructure.Configuration;
+using ToolSet.Infrastructure.Scripts;
 using ToolSet.ViewModels;
 
 namespace ToolSet.ViewModels.EnvironmentDeploy
@@ -11,8 +12,8 @@ namespace ToolSet.ViewModels.EnvironmentDeploy
         public EnvironmentDeployViewModel()
             : base("环境部署")
         {
-            Wsl = new SSHConfigViewModel(AppConfig.Current, "环境部署/WSL_SSH_配置");
-            CentOS = new SSHConfigViewModel(AppConfig.Current, "环境部署/Centos_SSH_配置");
+            Wsl = new SSHConfigViewModel(AppConfig.Current, AppScripts.Current, "环境部署/WSL_SSH_配置", "wsl_sshcall.bat");
+            CentOS = new SSHConfigViewModel(AppConfig.Current, AppScripts.Current, "环境部署/Centos_SSH_配置", "centos_sshcall.bat");
         }
 
         public SSHConfigViewModel Wsl { get; }

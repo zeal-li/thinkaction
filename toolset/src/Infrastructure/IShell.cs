@@ -1,4 +1,5 @@
 using ToolSet.Infrastructure.Configuration;
+using ToolSet.Infrastructure.Scripts;
 
 namespace ToolSet.Infrastructure
 {
@@ -8,5 +9,8 @@ namespace ToolSet.Infrastructure
     public interface IShell
     {
         IConfigService Config { get; }
+
+        /// <summary>通用脚本执行器，用于调用 bat 脚本。</summary>
+        IScriptExecutor Scripts { get; }
     }
 }

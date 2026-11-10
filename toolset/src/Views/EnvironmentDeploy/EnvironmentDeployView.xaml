@@ -30,6 +30,7 @@
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
                         <TextBlock Grid.Row="0" Grid.Column="0" Text="hostname" Style="{StaticResource FieldLabelText}" />
@@ -41,6 +42,12 @@
                         <TextBox Grid.Row="0" Grid.Column="3"
                                  Style="{StaticResource AppTextBox}"
                                  Text="{Binding Wsl.Port, UpdateSourceTrigger=PropertyChanged}" />
+                        <Button Grid.Row="0" Grid.Column="4"
+                                Content="测试SSH"
+                                Style="{StaticResource ActionButton}"
+                                MinWidth="76"
+                                Margin="8,0,0,8"
+                                Command="{Binding Wsl.TestSshCommand}" />
 
                         <TextBlock Grid.Row="1" Grid.Column="0" Text="username" Style="{StaticResource FieldLabelText}" />
                         <TextBox Grid.Row="1" Grid.Column="1"
@@ -96,6 +103,7 @@
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
                         <TextBlock Grid.Row="0" Grid.Column="0" Text="hostname" Style="{StaticResource FieldLabelText}" />
@@ -107,6 +115,12 @@
                         <TextBox Grid.Row="0" Grid.Column="3"
                                  Style="{StaticResource AppTextBox}"
                                  Text="{Binding CentOS.Port, UpdateSourceTrigger=PropertyChanged}" />
+                        <Button Grid.Row="0" Grid.Column="4"
+                                Content="测试SSH"
+                                Style="{StaticResource ActionButton}"
+                                MinWidth="76"
+                                Margin="8,0,0,8"
+                                Command="{Binding CentOS.TestSshCommand}" />
 
                         <TextBlock Grid.Row="1" Grid.Column="0" Text="username" Style="{StaticResource FieldLabelText}" />
                         <TextBox Grid.Row="1" Grid.Column="1"

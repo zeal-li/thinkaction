@@ -177,6 +177,33 @@ config.Remove("辅助工具/导表/线程数");
 
 ---
 
+## 通用脚本执行
+
+`IScriptExecutor`（默认实现 `ScriptExecutor`）通过 `cmd /d /s /c` 调用 bat/cmd，脚本工作目录为脚本所在目录，退出码原样返回：
+
+```csharp
+var scripts = new ScriptExecutor();                 // 或使用注入的 IShell.Scripts
+
+ScriptResult result = scripts.Run(@"scripts\wsl_sshcall.bat", "df -h");
+bool ok = result.Success;                           // 退出码 == 0
+string stdout = result.Output;
+string stderr = result.Error;
+
+await scripts.RunAsync(@"scripts\wsl_sshcall.bat", args, line => Console.WriteLine(line));  // 逐行回调输出
+
+scripts.RunInConsole(@"scripts\wsl_sshcall.bat", "whoami");  // 新开控制台窗口执行，输出打在窗口里，跑完按键关闭
+```
+
+- 脚本目录统一走 `AppScripts`：`AppScripts.ScriptDirectory` 是 exe 同级的 `scripts` 目录，取脚本全路径用 `AppScripts.GetScriptPath("wsl_sshcall.bat")`，不要在模块里自己拼 `AppContext.BaseDirectory`
+- 参数按「一个元素一个参数」传递，含空格的会自动加引号，无需自己拼命令行
+- 输出按控制台 OEM 代码页解码（中文系统即 936），因此 **bat 文件本身要保存为 ANSI/GBK**，否则脚本里 `echo` 的中文会乱码
+- `scripts\wsl_sshcall.bat` / `scripts\centos_sshcall.bat`：连接信息由脚本自己从 exe 同级 `config\config.json` 的「环境部署 / WSL_SSH_配置」「环境部署 / Centos_SSH_配置」读取，只接一个参数（要执行的命令）；配置项或命令为空、配置不是合法 JSON 时都打印提示并 `exit /b 1`（「测试SSH」就是分别调这两个脚本执行 `whoami`，界面有未确认的改动时会先写回配置再测）
+- 这两个脚本用 PowerShell 解析 JSON，中转文件固定为脚本同级 `tmp\` 目录下的 `wsl_ssh_config_tmp.txt` / `centos_ssh_config_tmp.txt`（目录不存在会自动创建）：每次执行先删残留、解析完立即删除，`tmp/` 已在 `.gitignore` 里忽略；脚本开头 `chcp 936` 是为了让 GBK 脚本里的中文能正确传给 PowerShell
+- `RunInConsole` 不捕获输出、不等待结束，用于「想让人直接看日志」的场景（如测试 SSH），窗口在脚本跑完后 `pause` 停住；它打开的控制台进程会挂到 kill-on-job-close 的 Job 上（`ConsoleProcessJob`），ToolSet 退出（含被任务管理器强杀、崩溃）时连同 ssh 等子进程一起结束，工作目录用临时目录，避免锁住脚本/输出目录
+- 不做静默兜底：脚本不存在、`cmd` 启动失败直接抛异常，脚本返回非 0 退出码由调用方判断
+
+---
+
 ## 目标框架调整
 
 改 `src\ToolSet.csproj` 中的 `<TargetFramework>` 一行即可，代码无需改动：
@@ -200,7 +227,7 @@ config.Remove("辅助工具/导表/线程数");
 ## 配置说明
 
 - 程序集名 / exe 名：`ToolSet`（`<AssemblyName>`）
-- 根命名空间：`ToolSet`（`<RootNamespace>`），子命名空间与目录一一对应：`ToolSet.Infrastructure`、`ToolSet.Infrastructure.Configuration`、`ToolSet.ViewModels`、`ToolSet.ViewModels.Common`、`ToolSet.ViewModels.EnvironmentDeploy`、`ToolSet.Views.Common`、`ToolSet.Views.EnvironmentDeploy`
+- 根命名空间：`ToolSet`（`<RootNamespace>`），子命名空间与目录一一对应：`ToolSet.Infrastructure`、`ToolSet.Infrastructure.Configuration`、`ToolSet.Infrastructure.Scripts`、`ToolSet.ViewModels`、`ToolSet.ViewModels.Common`、`ToolSet.ViewModels.EnvironmentDeploy`、`ToolSet.Views.Common`、`ToolSet.Views.EnvironmentDeploy`
 - 版本号：改 csproj 的 `<Version>` 即可
 - 工具集路径 `MainViewModel.ToolSetPath` 目前**硬编码**为 `C:\data\ikun_01_cn\common\ToolSet`（「打开目录」按钮使用），后续计划改为读取配置文件（对应原 `scripts/config.ini`）
 
@@ -219,5 +246,5 @@ config.Remove("辅助工具/导表/线程数");
 - [ ] 接入配置文件（`config.ini`）读取项目名、SSH、MySQL、导表路径等
 - [ ] 「管理项目」模块
 - [ ] 「辅助工具」模块（导出表 / 导出 Sproto / 表结构导出）
-- [ ] 命令执行器：调用外部进程并处理输出
+- [x] 命令执行器：调用外部进程并处理输出（`IScriptExecutor`）
 - [x] 应用图标（`Assets\toolset.ico`，16~256 多尺寸）
