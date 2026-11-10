@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.Windows.Input;
 using ToolSet.Infrastructure;
 using ToolSet.Infrastructure.Configuration;
-using ToolSet.Infrastructure.Scripts;
 using ToolSet.ViewModels.Common;
 using ToolSet.ViewModels.EnvironmentDeploy;
 
@@ -47,8 +46,6 @@ namespace ToolSet.ViewModels
         }
 
         public IConfigService Config { get; } = AppConfig.Current;
-
-        public IScriptExecutor Scripts { get; } = AppScripts.Current;
 
         public ObservableCollection<ModuleViewModelBase> Modules { get; }
 

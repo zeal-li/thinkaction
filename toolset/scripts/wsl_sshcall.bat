@@ -60,5 +60,9 @@ if "!ssh_commond!"=="" (
 echo "[开始执行ssh命令] ssh -i !ssh_key! !ssh_user!@!ssh_host! -p !ssh_port! !ssh_commond!"
 ssh -i "!ssh_key!" !ssh_user!@!ssh_host! -p !ssh_port! !ssh_commond!
 set "ssh_result=!errorlevel!"
+
+:::ssh 退出后可能把控制台代码页切成 65001，切回来，否则后面的中文提示会乱码
+chcp 936 >nul
+
 echo "[ssh命令执行完成] 退出码:!ssh_result!"
 exit /b !ssh_result!
