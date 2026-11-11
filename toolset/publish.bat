@@ -56,6 +56,17 @@ if errorlevel 1 (
 )
 
 echo.
+echo Copying ssh_key_block...
+if exist "publish\ssh_key_block" rd /s /q "publish\ssh_key_block"
+xcopy "ssh_key_block" "publish\ssh_key_block" /e /i /y >nul
+if errorlevel 1 (
+    echo.
+    echo [ERROR] Copy ssh_key_block failed, see the message above.
+    pause
+    exit /b 1
+)
+
+echo.
 echo [OK] Output: %~dp0publish\ToolSet.exe
 for %%f in ("publish\ToolSet.exe") do echo      Size: %%~zf bytes
 echo      Self-contained, run directly on any Windows 10/11 %RID% machine.
