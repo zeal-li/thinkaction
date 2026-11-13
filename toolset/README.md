@@ -58,7 +58,7 @@ toolset\
     │   └── EnvironmentDeploy\       # 左侧「环境部署」
     │       ├── EnvironmentDeployViewModel.cs
     │       ├── SSHConfigViewModel.cs         # WSL / CentOS 的 SSH 连接配置
-    │       └── MySqlConfigViewModel.cs      # 本地 MySQL 配置
+    │       └── LocalMySqlConfigViewModel.cs # 本地 MySQL 配置
     └── Views\
         ├── Common\                  # 多个模块共用
         │   └── PlaceholderModuleView.xaml(.cs)

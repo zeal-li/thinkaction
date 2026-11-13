@@ -10,7 +10,7 @@ namespace ToolSet.ViewModels.EnvironmentDeploy
     /// 本地 MySQL 配置（dirpath / hostname / port / username / password）。
     /// 配置持久化在 config/config.json 的指定分组下，修改后可取消（恢复为配置值）或确认（写回配置）。
     /// </summary>
-    public sealed class MySqlConfigViewModel : ViewModelBase
+    public sealed class LocalMySqlConfigViewModel : ViewModelBase
     {
         private const string DirPathKey = "dirpath";
         private const string HostnameKey = "hostname";
@@ -32,7 +32,7 @@ namespace ToolSet.ViewModels.EnvironmentDeploy
 
         /// <param name="config">配置读写接口。</param>
         /// <param name="sectionPath">本配置的分组，如 <c>环境部署/Local_MySql_配置</c>。</param>
-        public MySqlConfigViewModel(IConfigService config, string sectionPath)
+        public LocalMySqlConfigViewModel(IConfigService config, string sectionPath)
         {
             _config = config;
             _sectionPath = sectionPath;
@@ -52,6 +52,7 @@ namespace ToolSet.ViewModels.EnvironmentDeploy
             CancelEditCommand = new RelayCommand(CancelEdit);
             ConfirmEditCommand = new RelayCommand(ConfirmEdit);
             BrowseDirPathCommand = new RelayCommand(BrowseDirPath);
+            ConfigureServiceCommand = new RelayCommand(ConfigureService);
 
             LoadFromConfig();
         }
@@ -62,6 +63,9 @@ namespace ToolSet.ViewModels.EnvironmentDeploy
 
         /// <summary>浏览选择 MySQL 所在目录。</summary>
         public ICommand BrowseDirPathCommand { get; }
+
+        /// <summary>配置服务（功能待定）。</summary>
+        public ICommand ConfigureServiceCommand { get; }
 
         /// <summary>输入框内容与配置不一致时为 true，用于显示「取消 / 确认」按钮。</summary>
         public bool HasPendingChanges
@@ -170,6 +174,11 @@ namespace ToolSet.ViewModels.EnvironmentDeploy
             {
                 DirPath = dialog.FolderName;
             }
+        }
+
+        private void ConfigureService()
+        {
+            // TODO: 功能待定。
         }
 
         private void MarkAsSaved()

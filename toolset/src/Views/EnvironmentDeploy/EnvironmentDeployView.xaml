@@ -212,6 +212,11 @@
 
                         <StackPanel Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="4"
                                     Orientation="Horizontal">
+                            <Button Content="配置服务"
+                                    Style="{StaticResource ActionButton}"
+                                    MinWidth="76"
+                                    Margin="0,0,8,0"
+                                    Command="{Binding LocalMySql.ConfigureServiceCommand}" />
                             <Button Content="注册服务"
                                     Style="{StaticResource ActionButton}"
                                     MinWidth="76"
