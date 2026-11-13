@@ -20,6 +20,6 @@ namespace ToolSet.ViewModels.EnvironmentDeploy
 
         public SSHConfigViewModel CentOS { get; }
 
-        public MySqlConfigViewModel LocalMySql { get; } = new MySqlConfigViewModel();
+        public MySqlConfigViewModel LocalMySql { get; } = new MySqlConfigViewModel(AppConfig.Current, "环境部署/Local_MySql_配置");
     }
 }
