@@ -34,7 +34,7 @@ namespace ToolSet.ViewModels.EnvironmentDeploy
         /// <param name="config">配置读写接口。</param>
         /// <param name="scripts">脚本执行器，用于「测试SSH」。</param>
         /// <param name="sectionPath">本环境的配置分组，如 <c>环境部署/WSL_SSH_配置</c>。</param>
-        /// <param name="testScriptFileName">测试连接用的脚本文件名，如 <c>wsl_sshcall.bat</c>（脚本自行读配置）。</param>
+        /// <param name="testScriptFileName">测试连接用的脚本文件名，如 <c>sshcall_wsl.bat</c>（脚本自行读配置）。</param>
         public SSHConfigViewModel(IConfigService config, IScriptExecutor scripts, string sectionPath, string testScriptFileName)
         {
             _config = config;
@@ -67,7 +67,7 @@ namespace ToolSet.ViewModels.EnvironmentDeploy
 
         public ICommand BrowseUserKeyCommand { get; }
 
-        /// <summary>测试当前输入的 SSH 连接：新开控制台窗口调用 wsl/centos_sshcall.bat 执行 whoami。</summary>
+        /// <summary>测试当前输入的 SSH 连接：新开控制台窗口调用 sshcall_wsl/sshcall_centos.bat 执行 whoami。</summary>
         public ICommand TestSshCommand { get; }
 
         /// <summary>输入框内容与配置不一致时为 true，用于显示「取消 / 确认」按钮。</summary>

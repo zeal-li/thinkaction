@@ -15,7 +15,7 @@ namespace ToolSet.Infrastructure.Scripts
         /// <summary>全局默认执行器，供拿不到 <see cref="IShell"/> 注入的模块直接使用。</summary>
         public static IScriptExecutor Current { get; } = new ScriptExecutor();
 
-        /// <summary>把脚本文件名拼成脚本目录下的全路径，例如 <c>GetScriptPath("wsl_sshcall.bat")</c>。</summary>
+        /// <summary>把脚本文件名拼成脚本目录下的全路径，例如 <c>GetScriptPath("sshcall_wsl.bat")</c>。</summary>
         public static string GetScriptPath(string fileName) => Path.Combine(ScriptDirectory, fileName);
     }
 }
