@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using ToolSet.Infrastructure;
 
 namespace ToolSet.ViewModels.ProjectManagement
@@ -9,6 +10,9 @@ namespace ToolSet.ViewModels.ProjectManagement
     /// </summary>
     public sealed class ProjectItemViewModel : ViewModelBase
     {
+        /// <summary>创建时间在界面上的显示格式（配置里存的是 Unix 秒时间戳）。</summary>
+        public const string CreatedAtDisplayFormat = "yyyy-MM-dd HH:mm:ss";
+
         public ProjectItemViewModel(string name, DateTime createdAt)
         {
             Name = name;
@@ -19,6 +23,6 @@ namespace ToolSet.ViewModels.ProjectManagement
 
         public DateTime CreatedAt { get; }
 
-        public string CreatedAtText => $"创建于 {CreatedAt:yyyy-MM-dd HH:mm}";
+        public string CreatedAtText => $"创建于 {CreatedAt.ToString(CreatedAtDisplayFormat, CultureInfo.InvariantCulture)}";
     }
 }
