@@ -23,6 +23,21 @@ if /i "!action!"=="register" (
     exit /b !errorlevel!
 )
 
+if /i "!action!"=="remove" (
+    call :remove_service
+    exit /b !errorlevel!
+)
+
+if /i "!action!"=="start" (
+    call :start_service
+    exit /b !errorlevel!
+)
+
+if /i "!action!"=="stop" (
+    call :stop_service
+    exit /b !errorlevel!
+)
+
 echo [错误] 未定义的功能: !action!
 call :print_usage
 exit /b 1
@@ -35,6 +50,9 @@ echo 用法: %~nx0 ^<功能名^>
 echo 可用功能:
 echo   config   - 配置服务（拷 envconf\mysql\my.ini 到 dirpath 并替换 BASE_DIR / DATA_DIR）
 echo   register - 注册服务（mysqld --install ^<servicename^> --defaults-file=^<dirpath^>\my.ini，需先执行 config）
+echo   remove   - 移除服务（sc delete ^<servicename^>，不删数据目录）
+echo   start    - 启动服务（net start ^<servicename^>）
+echo   stop     - 停止服务（net stop ^<servicename^>）
 exit /b 0
 
 ::::------------------------------------------------------------
@@ -141,13 +159,89 @@ echo "[注册服务] 完成"
 exit /b 0
 
 ::::------------------------------------------------------------
-::::注册服务需要管理员权限：没有就提权重启自己，原进程直接退出
+::::移除服务：只卸载 Windows 服务，不动 dirpath 下的数据和 my.ini
+::::  sc delete <servicename>，只认服务名，不需要 dirpath
+::::------------------------------------------------------------
+:remove_service
+call :load_config
+if errorlevel 1 exit /b 1
+
+if "!mysql_service_name!"=="" (
+    echo [错误] 未配置 servicename，请在界面「环境部署 / Local_MySql_配置」填写并点确认
+    exit /b 1
+)
+
+call :ensure_admin
+if errorlevel 1 exit /b 1
+
+echo "[移除服务] 卸载服务 !mysql_service_name!"
+sc delete "!mysql_service_name!"
+if errorlevel 1 (
+    echo [错误] 移除服务失败，请确认服务名是否正确、服务是否已停止
+    exit /b 1
+)
+
+echo "[移除服务] 完成"
+exit /b 0
+
+::::------------------------------------------------------------
+::::启动服务：net start <servicename>
+::::------------------------------------------------------------
+:start_service
+call :load_config
+if errorlevel 1 exit /b 1
+
+if "!mysql_service_name!"=="" (
+    echo [错误] 未配置 servicename，请在界面「环境部署 / Local_MySql_配置」填写并点确认
+    exit /b 1
+)
+
+call :ensure_admin
+if errorlevel 1 exit /b 1
+
+echo "[启动服务] 启动服务 !mysql_service_name!"
+net start "!mysql_service_name!"
+if errorlevel 1 (
+    echo [错误] 启动服务失败，请确认服务已注册且未处于运行状态
+    exit /b 1
+)
+
+echo "[启动服务] 完成"
+exit /b 0
+
+::::------------------------------------------------------------
+::::停止服务：net stop <servicename>
+::::------------------------------------------------------------
+:stop_service
+call :load_config
+if errorlevel 1 exit /b 1
+
+if "!mysql_service_name!"=="" (
+    echo [错误] 未配置 servicename，请在界面「环境部署 / Local_MySql_配置」填写并点确认
+    exit /b 1
+)
+
+call :ensure_admin
+if errorlevel 1 exit /b 1
+
+echo "[停止服务] 停止服务 !mysql_service_name!"
+net stop "!mysql_service_name!"
+if errorlevel 1 (
+    echo [错误] 停止服务失败，请确认服务已注册且未处于停止状态
+    exit /b 1
+)
+
+echo "[停止服务] 完成"
+exit /b 0
+
+::::------------------------------------------------------------
+::::注册/移除/启动/停止服务都需要管理员权限：没有就提权重启自己，原进程直接退出
 ::::------------------------------------------------------------
 :ensure_admin
 net session >nul 2>&1
 if not errorlevel 1 exit /b 0
 
-echo "[注册服务] 需要管理员权限，正在以管理员身份重新启动..."
+echo "[!action!] 需要管理员权限，正在以管理员身份重新启动..."
 powershell -NoProfile -Command "Start-Process -FilePath '%~f0' -ArgumentList '!action!' -Verb RunAs"
 if errorlevel 1 (
     echo [错误] 获取管理员权限失败

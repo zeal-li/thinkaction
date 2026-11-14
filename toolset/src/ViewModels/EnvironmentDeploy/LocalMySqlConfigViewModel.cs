@@ -62,6 +62,9 @@ namespace ToolSet.ViewModels.EnvironmentDeploy
             BrowseDirPathCommand = new RelayCommand(BrowseDirPath);
             ConfigureServiceCommand = new RelayCommand(ConfigureService);
             RegisterServiceCommand = new RelayCommand(RegisterService);
+            RemoveServiceCommand = new RelayCommand(RemoveService);
+            StartServiceCommand = new RelayCommand(StartService);
+            StopServiceCommand = new RelayCommand(StopService);
 
             LoadFromConfig();
         }
@@ -78,6 +81,15 @@ namespace ToolSet.ViewModels.EnvironmentDeploy
 
         /// <summary>注册服务：调用 local_mysql_operate.bat register，把 mysqld 注册成 Windows 服务（需管理员）。</summary>
         public ICommand RegisterServiceCommand { get; }
+
+        /// <summary>移除服务：调用 local_mysql_operate.bat remove，卸载 Windows 服务，不删数据目录（需管理员）。</summary>
+        public ICommand RemoveServiceCommand { get; }
+
+        /// <summary>启动服务：调用 local_mysql_operate.bat start，即 net start servicename（需管理员）。</summary>
+        public ICommand StartServiceCommand { get; }
+
+        /// <summary>停止服务：调用 local_mysql_operate.bat stop，即 net stop servicename（需管理员）。</summary>
+        public ICommand StopServiceCommand { get; }
 
         /// <summary>输入框内容与配置不一致时为 true，用于显示「取消 / 确认」按钮。</summary>
         public bool HasPendingChanges
@@ -202,24 +214,28 @@ namespace ToolSet.ViewModels.EnvironmentDeploy
             }
         }
 
-        private void ConfigureService()
+        private void ConfigureService() => RunMysqlAction("config");
+
+        private void RegisterService() => RunMysqlAction("register");
+
+        private void RemoveService() => RunMysqlAction("remove");
+
+        private void StartService() => RunMysqlAction("start");
+
+        private void StopService() => RunMysqlAction("stop");
+
+        /// <summary>
+        /// 所有服务操作都走 local_mysql_operate.bat，脚本自己读 config.json 取 servicename / dirpath，
+        /// 界面上的改动没确认时配置里还是旧值，这里只提示、不执行。
+        /// </summary>
+        private void RunMysqlAction(string action)
         {
             if (!CheckConfigConfirmed())
             {
                 return;
             }
 
-            _scripts.RunInConsole(AppScripts.GetScriptPath("local_mysql_operate.bat"), "config");
-        }
-
-        private void RegisterService()
-        {
-            if (!CheckConfigConfirmed())
-            {
-                return;
-            }
-
-            _scripts.RunInConsole(AppScripts.GetScriptPath("local_mysql_operate.bat"), "register");
+            _scripts.RunInConsole(AppScripts.GetScriptPath("local_mysql_operate.bat"), action);
         }
 
         /// <summary>
