@@ -15,11 +15,32 @@
 
     <Border Style="{StaticResource SectionCard}" Margin="10">
         <StackPanel>
-            <!-- 项目名称，后续字段继续往下排 -->
-            <TextBlock Text="项目名称" Style="{StaticResource FieldLabelText}" />
-            <TextBox x:Name="ProjectNameBox"
-                     Style="{StaticResource AppTextBox}"
-                     Text="{Binding ProjectName, UpdateSourceTrigger=PropertyChanged}" />
+            <!-- 每行一个配置项：左边标签，右边输入框 -->
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <TextBlock Text="项目名称"
+                           Style="{StaticResource FieldLabelText}" />
+                <TextBox Grid.Column="1"
+                         x:Name="ProjectNameBox"
+                         Style="{StaticResource AppTextBox}"
+                         Text="{Binding ProjectName, UpdateSourceTrigger=PropertyChanged}" />
+
+                <TextBlock Grid.Row="1"
+                           Text="检出根目录"
+                           Style="{StaticResource FieldLabelText}" />
+                <TextBox Grid.Row="1"
+                         Grid.Column="1"
+                         Style="{StaticResource AppTextBox}"
+                         Text="{Binding CheckoutRootDir, UpdateSourceTrigger=PropertyChanged}" />
+            </Grid>
 
             <StackPanel Orientation="Horizontal"
                         HorizontalAlignment="Right"

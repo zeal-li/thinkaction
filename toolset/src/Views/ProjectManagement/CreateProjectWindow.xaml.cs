@@ -17,6 +17,9 @@ namespace ToolSet.Views.ProjectManagement
         /// <summary>用户填写的项目名称。</summary>
         public string ProjectName => _viewModel.ProjectName.Trim();
 
+        /// <summary>用户填写的检出根目录。</summary>
+        public string CheckoutRootDir => _viewModel.CheckoutRootDir.Trim();
+
         private void Create_Click(object sender, RoutedEventArgs e) => DialogResult = true;
     }
 }

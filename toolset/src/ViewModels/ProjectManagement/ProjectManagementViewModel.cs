@@ -23,6 +23,9 @@ namespace ToolSet.ViewModels.ProjectManagement
         /// <summary>项目创建时间（本项目自己记录，不依赖文件时间）。</summary>
         private const string CreatedAtKey = "创建时间";
 
+        /// <summary>项目检出根目录。</summary>
+        private const string CheckoutRootDirKey = "检出根目录";
+
         /// <summary>项目名排序：中文按拼音（zh-CN 排序规则），忽略大小写。</summary>
         private static readonly StringComparer NameComparer =
             StringComparer.Create(CultureInfo.GetCultureInfo("zh-CN"), ignoreCase: true);
@@ -114,6 +117,7 @@ namespace ToolSet.ViewModels.ProjectManagement
             _config.Set(
                 ProjectPath(name, CreatedAtKey),
                 createdAt.ToUnixTimeSeconds().ToString(CultureInfo.InvariantCulture));
+            _config.Set(ProjectPath(name, CheckoutRootDirKey), dialog.CheckoutRootDir);
 
             InsertSorted(new ProjectItemViewModel(name, createdAt.LocalDateTime));
         }
