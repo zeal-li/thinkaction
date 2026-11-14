@@ -15,32 +15,38 @@ if "!action!"=="" (
 
 if /i "!action!"=="config" (
     call :config_service
-    exit /b !errorlevel!
+    goto :finish
 )
 
 if /i "!action!"=="register" (
     call :register_service
-    exit /b !errorlevel!
+    goto :finish
 )
 
 if /i "!action!"=="remove" (
     call :remove_service
-    exit /b !errorlevel!
+    goto :finish
 )
 
 if /i "!action!"=="start" (
     call :start_service
-    exit /b !errorlevel!
+    goto :finish
 )
 
 if /i "!action!"=="stop" (
     call :stop_service
-    exit /b !errorlevel!
+    goto :finish
 )
 
 echo [错误] 未定义的功能: !action!
 call :print_usage
 exit /b 1
+
+:finish
+::::提权出来的副本带 elevated 参数，跑完 pause 停住，日志才看得见，否则窗口一闪而过
+set "opt_result=!errorlevel!"
+if /i "%~2"=="elevated" pause
+exit /b !opt_result!
 
 ::::------------------------------------------------------------
 ::::用法
@@ -49,8 +55,8 @@ exit /b 1
 echo 用法: %~nx0 ^<功能名^>
 echo 可用功能:
 echo   config   - 配置服务（拷 envconf\mysql\my.ini 到 dirpath 并替换 BASE_DIR / DATA_DIR）
-echo   register - 注册服务（mysqld --install ^<servicename^> --defaults-file=^<dirpath^>\my.ini，需先执行 config）
-echo   remove   - 移除服务（sc delete ^<servicename^>，不删数据目录）
+echo   register - 注册服务（mysqld --install ^<servicename^> --defaults-file=^<dirpath^>\my.ini，需先执行 config；data 目录不存在时自动初始化，root 空密码）
+echo   remove   - 移除服务（运行中先 net stop ^<servicename^>，再 sc delete，不删数据目录）
 echo   start    - 启动服务（net start ^<servicename^>）
 echo   stop     - 停止服务（net stop ^<servicename^>）
 exit /b 0
@@ -153,13 +159,25 @@ if errorlevel 1 (
     popd
     exit /b 1
 )
+
+::::MySQL 5.7 不会自动建 data 目录，没有它服务一启动就 Aborting，所以注册后初始化一次
+::::--defaults-file 必须是第一个参数，放后面会被忽略，datadir 就对不上了
+if not exist "!mysql_dirpath!\data" (
+    echo "[注册服务] 初始化数据目录 !mysql_dirpath!\data（root 用户空密码）"
+    mysqld --defaults-file="!mysql_dirpath!\my.ini" --initialize-insecure
+    if errorlevel 1 (
+        echo [错误] 初始化数据目录失败，请检查 dirpath 是否可写
+        popd
+        exit /b 1
+    )
+)
 popd
 
 echo "[注册服务] 完成"
 exit /b 0
 
 ::::------------------------------------------------------------
-::::移除服务：只卸载 Windows 服务，不动 dirpath 下的数据和 my.ini
+::::移除服务：先停服务再卸载，不动 dirpath 下的数据和 my.ini
 ::::  sc delete <servicename>，只认服务名，不需要 dirpath
 ::::------------------------------------------------------------
 :remove_service
@@ -173,6 +191,17 @@ if "!mysql_service_name!"=="" (
 
 call :ensure_admin
 if errorlevel 1 exit /b 1
+
+::::正在运行就先停掉，net stop 会等到服务真正停下才返回
+sc query "!mysql_service_name!" | findstr /i "RUNNING" >nul 2>nul
+if not errorlevel 1 (
+    echo "[移除服务] 停止服务 !mysql_service_name!"
+    net stop "!mysql_service_name!"
+    if errorlevel 1 (
+        echo [错误] 停止服务失败，请手动确认服务状态后再移除
+        exit /b 1
+    )
+)
 
 echo "[移除服务] 卸载服务 !mysql_service_name!"
 sc delete "!mysql_service_name!"
@@ -235,17 +264,20 @@ echo "[停止服务] 完成"
 exit /b 0
 
 ::::------------------------------------------------------------
-::::注册/移除/启动/停止服务都需要管理员权限：没有就提权重启自己，原进程直接退出
+::::注册/移除/启动/停止服务都需要管理员权限：没有就提权重启自己
+::::  提权副本带 elevated 参数，跑完在 :finish 里 pause，日志看得见
+::::  当前窗口随后 exit 直接关掉，不留一个只能看到「正在提权」的空窗口
 ::::------------------------------------------------------------
 :ensure_admin
 net session >nul 2>&1
 if not errorlevel 1 exit /b 0
 
 echo "[!action!] 需要管理员权限，正在以管理员身份重新启动..."
-powershell -NoProfile -Command "Start-Process -FilePath '%~f0' -ArgumentList '!action!' -Verb RunAs"
+powershell -NoProfile -Command "Start-Process -FilePath '%~f0' -ArgumentList '!action!','elevated' -Verb RunAs"
 if errorlevel 1 (
     echo [错误] 获取管理员权限失败
     exit /b 1
 )
 
-exit /b 1
+::::exit 而不是 exit /b：跳过外层的 pause，把本窗口直接关掉，只留提权窗口
+exit
