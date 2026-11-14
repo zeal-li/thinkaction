@@ -189,7 +189,7 @@ AppScripts.Current.RunInConsole(AppScripts.GetScriptPath("sshcall_wsl.bat"), "wh
 - 参数按「一个元素一个参数」传递，含空格的会自动加引号，无需自己拼命令行
 - 控制台按当前代码页显示脚本内容，因此 **bat 文件本身要保存为 ANSI/GBK**（脚本开头也 `chcp 936`），否则脚本里的中文会乱码
 - `scripts\sshcall_wsl.bat` / `scripts\sshcall_centos.bat`：连接信息由脚本自己从 exe 同级 `config\config.json` 的「环境部署 / WSL_SSH_配置」「环境部署 / Centos_SSH_配置」读取，只接一个参数（要执行的命令）；配置项或命令为空、配置不是合法 JSON 时都打印提示并 `exit /b 1`（「测试SSH」就是分别调这两个脚本执行 `whoami`，界面有未确认的改动时会先写回配置再测）
-- 这两个脚本用 PowerShell 解析 JSON，中转文件固定为脚本同级 `tmp\` 目录下的 `wsl_ssh_config_tmp.txt` / `centos_ssh_config_tmp.txt`（目录不存在会自动创建）：每次执行先删残留、解析完立即删除，`tmp/` 已在 `.gitignore` 里忽略
+- 这两个脚本用 PowerShell 解析 JSON，中转文件固定为脚本同级 `tmp\` 目录下的 `sshcall_wsl_config_tmp.txt` / `sshcall_centos_config_tmp.txt`（目录不存在会自动创建）：每次执行先删残留、解析完立即删除，`tmp/` 已在 `.gitignore` 里忽略
 - 脚本开头 `chcp 936` 是为了让 GBK 脚本里的中文能正确传给 PowerShell；**`ssh` 执行完会立刻再 `chcp 936`**，因为 Windows 的 ssh 会把控制台代码页切成 65001，不切回来后续的中文提示（以及末尾的 `pause`）会变成乱码/英文
 - `RunInConsole` 不捕获输出、不等待结束，用于「想让人直接看日志」的场景（如测试 SSH），窗口在脚本跑完后 `pause` 停住；它打开的控制台进程会挂到 kill-on-job-close 的 Job 上（`ConsoleProcessJob`），ToolSet 退出（含被任务管理器强杀、崩溃）时连同 ssh 等子进程一起结束，工作目录用临时目录，避免锁住脚本/输出目录
 - 不做静默兜底：脚本不存在、`cmd` 启动失败直接抛异常；退出码不回收到程序里，只在窗口日志中体现

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Windows;
 using System.Windows.Input;
 using Microsoft.Win32;
 using ToolSet.Infrastructure;
@@ -60,6 +61,7 @@ namespace ToolSet.ViewModels.EnvironmentDeploy
             ConfirmEditCommand = new RelayCommand(ConfirmEdit);
             BrowseDirPathCommand = new RelayCommand(BrowseDirPath);
             ConfigureServiceCommand = new RelayCommand(ConfigureService);
+            RegisterServiceCommand = new RelayCommand(RegisterService);
 
             LoadFromConfig();
         }
@@ -73,6 +75,9 @@ namespace ToolSet.ViewModels.EnvironmentDeploy
 
         /// <summary>配置服务：调用 local_mysql_operate.bat config，把 my.ini 拷到 dirpath。</summary>
         public ICommand ConfigureServiceCommand { get; }
+
+        /// <summary>注册服务：调用 local_mysql_operate.bat register，把 mysqld 注册成 Windows 服务（需管理员）。</summary>
+        public ICommand RegisterServiceCommand { get; }
 
         /// <summary>输入框内容与配置不一致时为 true，用于显示「取消 / 确认」按钮。</summary>
         public bool HasPendingChanges
@@ -199,13 +204,41 @@ namespace ToolSet.ViewModels.EnvironmentDeploy
 
         private void ConfigureService()
         {
-            // 脚本读的是配置文件，界面上的改动还没确认时先落盘，否则配的是旧 dirpath
-            if (HasPendingChanges)
+            if (!CheckConfigConfirmed())
             {
-                ConfirmEdit();
+                return;
             }
 
             _scripts.RunInConsole(AppScripts.GetScriptPath("local_mysql_operate.bat"), "config");
+        }
+
+        private void RegisterService()
+        {
+            if (!CheckConfigConfirmed())
+            {
+                return;
+            }
+
+            _scripts.RunInConsole(AppScripts.GetScriptPath("local_mysql_operate.bat"), "register");
+        }
+
+        /// <summary>
+        /// 脚本读的是配置文件，界面上的改动没确认时不能执行，
+        /// 否则跑的是旧配置，这里只提示，不替用户落盘。
+        /// </summary>
+        private bool CheckConfigConfirmed()
+        {
+            if (!HasPendingChanges)
+            {
+                return true;
+            }
+
+            MessageBox.Show(
+                "当前配置还未确认，请先点「确认」保存后再执行该操作。",
+                "提示",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+            return false;
         }
 
         private void MarkAsSaved()

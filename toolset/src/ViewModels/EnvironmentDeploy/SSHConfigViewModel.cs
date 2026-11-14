@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Windows;
 using System.Windows.Input;
 using Microsoft.Win32;
 using ToolSet.Infrastructure;
@@ -156,13 +157,31 @@ namespace ToolSet.ViewModels.EnvironmentDeploy
         /// <summary>新开控制台窗口执行对应脚本的 whoami，连接信息由脚本自己读 config.json。</summary>
         private void TestSsh()
         {
-            // 脚本读的是配置文件，界面上的改动还没确认时先落盘，否则测的是旧配置
-            if (HasPendingChanges)
+            if (!CheckConfigConfirmed())
             {
-                ConfirmEdit();
+                return;
             }
 
             _scripts.RunInConsole(AppScripts.GetScriptPath(_testScriptFileName), "whoami");
+        }
+
+        /// <summary>
+        /// 脚本读的是配置文件，界面上的改动没确认时不能执行，
+        /// 否则测的是旧配置，这里只提示，不替用户落盘。
+        /// </summary>
+        private bool CheckConfigConfirmed()
+        {
+            if (!HasPendingChanges)
+            {
+                return true;
+            }
+
+            MessageBox.Show(
+                "当前配置还未确认，请先点「确认」保存后再执行该操作。",
+                "提示",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+            return false;
         }
 
         private void ConfirmEdit()

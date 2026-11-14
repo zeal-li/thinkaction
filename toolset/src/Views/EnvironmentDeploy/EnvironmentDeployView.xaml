@@ -226,7 +226,8 @@
                             <Button Content="注册服务"
                                     Style="{StaticResource ActionButton}"
                                     MinWidth="76"
-                                    Margin="0,0,8,0" />
+                                    Margin="0,0,8,0"
+                                    Command="{Binding LocalMySql.RegisterServiceCommand}" />
                             <Button Content="移除服务"
                                     Style="{StaticResource ActionButton}"
                                     MinWidth="76"
