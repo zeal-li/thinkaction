@@ -171,6 +171,7 @@
                             <ColumnDefinition Width="*" MaxWidth="200" />
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="*" MaxWidth="200" />
+                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
@@ -179,11 +180,16 @@
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
-                        <TextBlock Grid.Row="0" Grid.Column="0" Text="dirpath" Style="{StaticResource FieldLabelText}" />
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="servicename" Style="{StaticResource FieldLabelText}" />
                         <TextBox Grid.Row="0" Grid.Column="1"
                                  Style="{StaticResource AppTextBox}"
+                                 Text="{Binding LocalMySql.ServiceName, UpdateSourceTrigger=PropertyChanged}" />
+
+                        <TextBlock Grid.Row="0" Grid.Column="2" Text="dirpath" Style="{StaticResource FieldLabelText}" Margin="24,0,10,8" />
+                        <TextBox Grid.Row="0" Grid.Column="3"
+                                 Style="{StaticResource AppTextBox}"
                                  Text="{Binding LocalMySql.DirPath, UpdateSourceTrigger=PropertyChanged}" />
-                        <Button Grid.Row="0" Grid.Column="2"
+                        <Button Grid.Row="0" Grid.Column="4"
                                 Content="浏览"
                                 Style="{StaticResource ActionButton}"
                                 MinWidth="64"
@@ -210,7 +216,7 @@
                                  Style="{StaticResource AppTextBox}"
                                  Text="{Binding LocalMySql.Password, UpdateSourceTrigger=PropertyChanged}" />
 
-                        <StackPanel Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="4"
+                        <StackPanel Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="5"
                                     Orientation="Horizontal">
                             <Button Content="配置服务"
                                     Style="{StaticResource ActionButton}"

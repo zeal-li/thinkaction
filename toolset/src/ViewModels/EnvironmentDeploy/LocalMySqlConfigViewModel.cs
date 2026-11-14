@@ -7,11 +7,12 @@ using ToolSet.Infrastructure.Configuration;
 namespace ToolSet.ViewModels.EnvironmentDeploy
 {
     /// <summary>
-    /// 本地 MySQL 配置（dirpath / hostname / port / username / password）。
+    /// 本地 MySQL 配置（servicename / dirpath / hostname / port / username / password）。
     /// 配置持久化在 config/config.json 的指定分组下，修改后可取消（恢复为配置值）或确认（写回配置）。
     /// </summary>
     public sealed class LocalMySqlConfigViewModel : ViewModelBase
     {
+        private const string ServiceNameKey = "servicename";
         private const string DirPathKey = "dirpath";
         private const string HostnameKey = "hostname";
         private const string PortKey = "port";
@@ -22,6 +23,7 @@ namespace ToolSet.ViewModels.EnvironmentDeploy
         private readonly string _sectionPath;
         private readonly Dictionary<string, string> _savedValues = new Dictionary<string, string>();
 
+        private string _serviceName = string.Empty;
         private string _dirPath = string.Empty;
         private string _hostname = string.Empty;
         private string _port = string.Empty;
@@ -41,6 +43,7 @@ namespace ToolSet.ViewModels.EnvironmentDeploy
             {
                 _config.SetValues(_sectionPath, new Dictionary<string, string>
                 {
+                    [ServiceNameKey] = string.Empty,
                     [DirPathKey] = string.Empty,
                     [HostnameKey] = string.Empty,
                     [PortKey] = string.Empty,
@@ -72,6 +75,18 @@ namespace ToolSet.ViewModels.EnvironmentDeploy
         {
             get => _hasPendingChanges;
             private set => SetProperty(ref _hasPendingChanges, value);
+        }
+
+        public string ServiceName
+        {
+            get => _serviceName;
+            set
+            {
+                if (SetProperty(ref _serviceName, value))
+                {
+                    RefreshPendingChanges();
+                }
+            }
         }
 
         public string DirPath
@@ -137,6 +152,7 @@ namespace ToolSet.ViewModels.EnvironmentDeploy
         private void LoadFromConfig()
         {
             _isLoading = true;
+            ServiceName = _config.Get(PathOf(ServiceNameKey));
             DirPath = _config.Get(PathOf(DirPathKey));
             Hostname = _config.Get(PathOf(HostnameKey));
             Port = _config.Get(PathOf(PortKey));
@@ -153,6 +169,7 @@ namespace ToolSet.ViewModels.EnvironmentDeploy
         {
             _config.SetValues(_sectionPath, new Dictionary<string, string>
             {
+                [ServiceNameKey] = ServiceName,
                 [DirPathKey] = DirPath,
                 [HostnameKey] = Hostname,
                 [PortKey] = Port,
@@ -183,6 +200,7 @@ namespace ToolSet.ViewModels.EnvironmentDeploy
 
         private void MarkAsSaved()
         {
+            _savedValues[ServiceNameKey] = ServiceName;
             _savedValues[DirPathKey] = DirPath;
             _savedValues[HostnameKey] = Hostname;
             _savedValues[PortKey] = Port;
@@ -200,7 +218,8 @@ namespace ToolSet.ViewModels.EnvironmentDeploy
             }
 
             HasPendingChanges =
-                DirPath != _savedValues[DirPathKey]
+                ServiceName != _savedValues[ServiceNameKey]
+                || DirPath != _savedValues[DirPathKey]
                 || Hostname != _savedValues[HostnameKey]
                 || Port != _savedValues[PortKey]
                 || Username != _savedValues[UsernameKey]
