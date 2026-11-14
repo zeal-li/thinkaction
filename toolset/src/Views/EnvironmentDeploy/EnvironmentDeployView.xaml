@@ -243,9 +243,6 @@
                                     MinWidth="76"
                                     Margin="0,0,8,0"
                                     Command="{Binding LocalMySql.StopServiceCommand}" />
-                            <Button Content="添加用户"
-                                    Style="{StaticResource ActionButton}"
-                                    MinWidth="76" />
                         </StackPanel>
                     </Grid>
 

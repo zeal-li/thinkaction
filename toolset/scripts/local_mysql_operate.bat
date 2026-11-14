@@ -8,6 +8,9 @@ chcp 936 >nul
 ::::功能名与下面的标签一一对应
 set "action=%~1"
 
+::::首次初始化 data 目录后给 root 设的密码
+set "root_password=123456"
+
 if "!action!"=="" (
     call :print_usage
     exit /b 1
@@ -54,15 +57,15 @@ exit /b !opt_result!
 :print_usage
 echo 用法: %~nx0 ^<功能名^>
 echo 可用功能:
-echo   config   - 配置服务（拷 envconf\mysql\my.ini 到 dirpath 并替换 BASE_DIR / DATA_DIR）
-echo   register - 注册服务（mysqld --install ^<servicename^> --defaults-file=^<dirpath^>\my.ini，需先执行 config；data 目录不存在时自动初始化，root 空密码）
+echo   config   - 配置服务（拷 envconf\mysql\my.ini 到 dirpath 并替换 CFG_BASE_DIR / CFG_DATA_DIR / CFG_PORT）
+echo   register - 注册服务（install 后自动启动，首次注册会初始化 data 目录、root 密码设成 123456，并按配置的 username/password 加一个权限等同 root 的用户；需先执行 config）
 echo   remove   - 移除服务（运行中先 net stop ^<servicename^>，再 sc delete，不删数据目录）
 echo   start    - 启动服务（net start ^<servicename^>）
 echo   stop     - 停止服务（net stop ^<servicename^>）
 exit /b 0
 
 ::::------------------------------------------------------------
-::::从 exe 同级的 config/config.json 读取 servicename / dirpath
+::::从 exe 同级的 config/config.json 读取 servicename / dirpath / port / username / password
 ::::------------------------------------------------------------
 :load_config
 set "config_path=%~dp0..\config\config.json"
@@ -72,7 +75,7 @@ set "config_tmp=%~dp0tmp\local_mysql_config_tmp.txt"
 if not exist "%~dp0tmp" mkdir "%~dp0tmp"
 if exist "%config_tmp%" del /q "%config_tmp%" >nul 2>nul
 
-powershell -NoProfile -ExecutionPolicy Bypass -Command "$ErrorActionPreference = 'Stop'; $j = ConvertFrom-Json (Get-Content -Raw -LiteralPath '%config_path%' -Encoding UTF8); $s = $j.'环境部署'.'Local_MySql_配置'; 'servicename=' + $s.servicename; 'dirpath=' + $s.dirpath" > "%config_tmp%"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$ErrorActionPreference = 'Stop'; $j = ConvertFrom-Json (Get-Content -Raw -LiteralPath '%config_path%' -Encoding UTF8); $s = $j.'环境部署'.'Local_MySql_配置'; 'servicename=' + $s.servicename; 'dirpath=' + $s.dirpath; 'port=' + $s.port; 'username=' + $s.username; 'password=' + $s.password" > "%config_tmp%"
 
 if errorlevel 1 (
     for %%i in ("%config_path%") do echo [错误] 读取配置失败，请检查 %%~fi 是否为合法 JSON
@@ -83,13 +86,17 @@ if errorlevel 1 (
 for /f "usebackq tokens=1,* delims==" %%a in ("%config_tmp%") do (
     if /i "%%a"=="servicename" set "mysql_service_name=%%b"
     if /i "%%a"=="dirpath" set "mysql_dirpath=%%b"
+    if /i "%%a"=="port" set "mysql_port=%%b"
+    if /i "%%a"=="username" set "mysql_username=%%b"
+    if /i "%%a"=="password" set "mysql_password=%%b"
 )
 del /q "%config_tmp%" >nul 2>nul
 exit /b 0
 
 ::::------------------------------------------------------------
 ::::配置服务：拷贝 envconf\mysql\my.ini 到 dirpath\my.ini，并把模板里的
-::::          BASE_DIR / DATA_DIR 替换成实际路径（basedir=dirpath，datadir=dirpath/data）
+::::          CFG_BASE_DIR / CFG_DATA_DIR / CFG_PORT 替换成实际值
+::::          basedir=dirpath，datadir=dirpath/data，port 取配置里的 port
 ::::------------------------------------------------------------
 :config_service
 call :load_config
@@ -97,6 +104,11 @@ if errorlevel 1 exit /b 1
 
 if "!mysql_dirpath!"=="" (
     echo [错误] 未配置 dirpath，请在界面「环境部署 / Local_MySql_配置」填写并点确认
+    exit /b 1
+)
+
+if "!mysql_port!"=="" (
+    echo [错误] 未配置 port，请在界面「环境部署 / Local_MySql_配置」填写并点确认
     exit /b 1
 )
 
@@ -116,8 +128,9 @@ if exist "!output_ini!" del /f /q "!output_ini!" >nul 2>nul
 echo "[配置服务] !source_ini! -> !output_ini!"
 for /f "usebackq tokens=* delims=" %%a in ("!source_ini!") do (
     set "line=%%a"
-    set "line=!line:BASE_DIR=%ini_base_dir%!"
-    set "line=!line:DATA_DIR=%ini_data_dir%!"
+    set "line=!line:CFG_BASE_DIR=%ini_base_dir%!"
+    set "line=!line:CFG_DATA_DIR=%ini_data_dir%!"
+    set "line=!line:CFG_PORT=%mysql_port%!"
     echo !line!>>"!output_ini!"
 )
 
@@ -130,7 +143,7 @@ echo "[配置服务] 完成"
 exit /b 0
 
 ::::------------------------------------------------------------
-::::注册服务：只负责注册 Windows 服务
+::::注册服务：注册 Windows 服务 -> 启动服务 -> 设 root 密码 -> 按配置建业务用户
 ::::  在 dirpath\bin 下执行 mysqld --install <servicename> --defaults-file=<dirpath>\my.ini
 ::::  my.ini 由 config 功能生成
 ::::------------------------------------------------------------
@@ -148,6 +161,21 @@ if "!mysql_service_name!"=="" (
     exit /b 1
 )
 
+if "!mysql_port!"=="" (
+    echo [错误] 未配置 port，请在界面「环境部署 / Local_MySql_配置」填写并点确认
+    exit /b 1
+)
+
+if "!mysql_username!"=="" (
+    echo [错误] 未配置 username，请在界面「环境部署 / Local_MySql_配置」填写并点确认
+    exit /b 1
+)
+
+if "!mysql_password!"=="" (
+    echo [错误] 未配置 password，请在界面「环境部署 / Local_MySql_配置」填写并点确认
+    exit /b 1
+)
+
 call :ensure_admin
 if errorlevel 1 exit /b 1
 
@@ -160,10 +188,10 @@ if errorlevel 1 (
     exit /b 1
 )
 
-::::MySQL 5.7 不会自动建 data 目录，没有它服务一启动就 Aborting，所以注册后初始化一次
+::::MySQL 5.7 不会自动建 data 目录，没有它服务一启动就 Aborting，所以先初始化
 ::::--defaults-file 必须是第一个参数，放后面会被忽略，datadir 就对不上了
 if not exist "!mysql_dirpath!\data" (
-    echo "[注册服务] 初始化数据目录 !mysql_dirpath!\data（root 用户空密码）"
+    echo "[注册服务] 初始化数据目录 !mysql_dirpath!\data"
     mysqld --defaults-file="!mysql_dirpath!\my.ini" --initialize-insecure
     if errorlevel 1 (
         echo [错误] 初始化数据目录失败，请检查 dirpath 是否可写
@@ -171,9 +199,40 @@ if not exist "!mysql_dirpath!\data" (
         exit /b 1
     )
 )
+
+echo "[注册服务] 启动服务 !mysql_service_name!"
+net start "!mysql_service_name!"
+if errorlevel 1 (
+    echo [错误] 启动服务失败，请查看上面的服务报错信息
+    popd
+    exit /b 1
+)
+
+::::探测 root 密码状态：空密码能连上说明还没设过（刚初始化或之前没设成功），先设成 root_password
+mysql -h 127.0.0.1 -P !mysql_port! -u root -e "SELECT 1" >nul 2>nul
+if not errorlevel 1 (
+    echo "[注册服务] 设置 root 密码"
+    mysql -h 127.0.0.1 -P !mysql_port! -u root -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '!root_password!';"
+    if errorlevel 1 (
+        echo [错误] 设置 root 密码失败
+        popd
+        exit /b 1
+    )
+)
+
+::::按配置的 username / password 建一个权限等同 root 的用户
+echo "[注册服务] 添加用户 !mysql_username!"
+::::主机位 %% 在批处理里代表一个百分号，写 '%' 会被当成变量名吞掉
+mysql -h 127.0.0.1 -P !mysql_port! -u root -p!root_password! -e "CREATE USER IF NOT EXISTS '!mysql_username!'@'%%' IDENTIFIED BY '!mysql_password!'; GRANT ALL PRIVILEGES ON *.* TO '!mysql_username!'@'%%' WITH GRANT OPTION; FLUSH PRIVILEGES;"
+if errorlevel 1 (
+    echo [错误] 添加用户失败，请确认 root 密码是 !root_password!
+    popd
+    exit /b 1
+)
+
 popd
 
-echo "[注册服务] 完成"
+echo "[注册服务] 完成，服务已启动，root 密码 !root_password!，业务用户 !mysql_username!"
 exit /b 0
 
 ::::------------------------------------------------------------

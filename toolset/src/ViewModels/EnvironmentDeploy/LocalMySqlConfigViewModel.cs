@@ -79,7 +79,10 @@ namespace ToolSet.ViewModels.EnvironmentDeploy
         /// <summary>配置服务：调用 local_mysql_operate.bat config，把 my.ini 拷到 dirpath。</summary>
         public ICommand ConfigureServiceCommand { get; }
 
-        /// <summary>注册服务：调用 local_mysql_operate.bat register，把 mysqld 注册成 Windows 服务（需管理员）。</summary>
+        /// <summary>
+        /// 注册服务：调用 local_mysql_operate.bat register，注册并启动服务、首次初始化 data 目录、
+        /// root 密码设为 123456，再按配置的 username / password 建一个权限等同 root 的用户（需管理员）。
+        /// </summary>
         public ICommand RegisterServiceCommand { get; }
 
         /// <summary>移除服务：调用 local_mysql_operate.bat remove，卸载 Windows 服务，不删数据目录（需管理员）。</summary>
