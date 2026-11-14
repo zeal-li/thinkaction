@@ -38,30 +38,43 @@
                                 <StackPanel>
                                     <Grid>
                                         <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
                                             <ColumnDefinition Width="*" />
                                             <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
 
                                         <TextBlock Text="{Binding Name}"
-                                                   FontSize="14"
-                                                   FontWeight="SemiBold"
-                                                   Foreground="{StaticResource TextPrimaryBrush}"
-                                                   TextTrimming="CharacterEllipsis"
+                                                   Style="{StaticResource CardTitleText}"
+                                                   Margin="0"
                                                    VerticalAlignment="Center" />
 
-                                        <Border Grid.Column="1"
-                                                Padding="8,2"
-                                                CornerRadius="10"
-                                                Background="{StaticResource AccentSoftBrush}">
-                                            <TextBlock Text="项目配置"
-                                                       FontSize="11"
-                                                       Foreground="{StaticResource AccentBrush}" />
-                                        </Border>
-                                    </Grid>
+                                        <TextBlock Grid.Column="1"
+                                                   Text="{Binding CreatedAtText}"
+                                                   Style="{StaticResource CaptionText}"
+                                                   Margin="10,0,10,0" />
 
-                                    <TextBlock Text="{Binding CreatedAtText}"
-                                               Style="{StaticResource CaptionText}"
-                                               Margin="0,6,0,0" />
+                                        <StackPanel Grid.Column="2"
+                                                    Orientation="Horizontal"
+                                                    VerticalAlignment="Center">
+                                            <Button Content="打开目录"
+                                                    Style="{StaticResource ActionButton}"
+                                                    MinWidth="0"
+                                                    Height="26"
+                                                    Padding="10,0"
+                                                    FontSize="12"
+                                                    CommandParameter="{Binding}"
+                                                    Command="{Binding DataContext.OpenProjectDirectoryCommand, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}" />
+                                            <Button Content="删除项目"
+                                                    Style="{StaticResource ActionButton}"
+                                                    MinWidth="0"
+                                                    Height="26"
+                                                    Padding="10,0"
+                                                    FontSize="12"
+                                                    Margin="8,0,0,0"
+                                                    CommandParameter="{Binding}"
+                                                    Command="{Binding DataContext.DeleteProjectCommand, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}" />
+                                        </StackPanel>
+                                    </Grid>
 
                                     <Border Height="1"
                                             Background="{StaticResource LineBrush}"

@@ -41,6 +41,8 @@ namespace ToolSet.ViewModels.ProjectManagement
         {
             _config = config;
             NewProjectCommand = new RelayCommand(NewProject);
+            OpenProjectDirectoryCommand = new RelayCommand(OpenProjectDirectory);
+            DeleteProjectCommand = new RelayCommand(DeleteProject);
 
             LoadProjects();
         }
@@ -48,6 +50,12 @@ namespace ToolSet.ViewModels.ProjectManagement
         public ObservableCollection<ProjectItemViewModel> Projects { get; } = new ObservableCollection<ProjectItemViewModel>();
 
         public ICommand NewProjectCommand { get; }
+
+        /// <summary>打开项目目录，功能待定。</summary>
+        public ICommand OpenProjectDirectoryCommand { get; }
+
+        /// <summary>删除项目（从 config.json 移除并刷新列表），参数为 <see cref="ProjectItemViewModel"/>。</summary>
+        public ICommand DeleteProjectCommand { get; }
 
         private void LoadProjects()
         {
@@ -112,6 +120,32 @@ namespace ToolSet.ViewModels.ProjectManagement
             _config.Set(ProjectPath(name, CreatedAtKey), createdAt.ToString(CreatedAtFormat, CultureInfo.InvariantCulture));
 
             InsertSorted(new ProjectItemViewModel(name, createdAt));
+        }
+
+        /// <summary>打开选中的项目目录，功能待定。</summary>
+        private void OpenProjectDirectory(object? parameter)
+        {
+            // TODO: 项目的目录配置确定后在这里打开，参数是 ProjectItemViewModel
+        }
+
+        private void DeleteProject(object? parameter)
+        {
+            var project = (ProjectItemViewModel)parameter!;
+
+            var result = MessageBox.Show(
+                $"确定删除项目「{project.Name}」吗？删除后不可恢复。",
+                "删除项目",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning,
+                MessageBoxResult.No);
+
+            if (result != MessageBoxResult.Yes)
+            {
+                return;
+            }
+
+            _config.Remove(ProjectPath(project.Name));
+            Projects.Remove(project);
         }
 
         /// <summary>新建后按同样的名称规则插入到对应位置，刷新排序。</summary>
