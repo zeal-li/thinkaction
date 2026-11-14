@@ -232,7 +232,7 @@ if errorlevel 1 (
 
 popd
 
-echo "[注册服务] 完成，服务已启动，root 密码 !root_password!，业务用户 !mysql_username!"
+echo "[注册服务] 完成，服务已启动，root 密码 !root_password!，业务用户 !mysql_username! 密码 !mysql_password!"
 exit /b 0
 
 ::::------------------------------------------------------------
