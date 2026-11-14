@@ -3,6 +3,7 @@ using System.Windows.Input;
 using Microsoft.Win32;
 using ToolSet.Infrastructure;
 using ToolSet.Infrastructure.Configuration;
+using ToolSet.Infrastructure.Scripts;
 
 namespace ToolSet.ViewModels.EnvironmentDeploy
 {
@@ -20,6 +21,7 @@ namespace ToolSet.ViewModels.EnvironmentDeploy
         private const string PasswordKey = "password";
 
         private readonly IConfigService _config;
+        private readonly IScriptExecutor _scripts;
         private readonly string _sectionPath;
         private readonly Dictionary<string, string> _savedValues = new Dictionary<string, string>();
 
@@ -33,10 +35,12 @@ namespace ToolSet.ViewModels.EnvironmentDeploy
         private bool _isLoading;
 
         /// <param name="config">配置读写接口。</param>
+        /// <param name="scripts">脚本执行器，用于「配置服务」等 MySQL 操作。</param>
         /// <param name="sectionPath">本配置的分组，如 <c>环境部署/Local_MySql_配置</c>。</param>
-        public LocalMySqlConfigViewModel(IConfigService config, string sectionPath)
+        public LocalMySqlConfigViewModel(IConfigService config, IScriptExecutor scripts, string sectionPath)
         {
             _config = config;
+            _scripts = scripts;
             _sectionPath = sectionPath;
 
             if (!_config.Contains(_sectionPath))
@@ -67,7 +71,7 @@ namespace ToolSet.ViewModels.EnvironmentDeploy
         /// <summary>浏览选择 MySQL 所在目录。</summary>
         public ICommand BrowseDirPathCommand { get; }
 
-        /// <summary>配置服务（功能待定）。</summary>
+        /// <summary>配置服务：调用 local_mysql_operate.bat config，把 my.ini 拷到 dirpath。</summary>
         public ICommand ConfigureServiceCommand { get; }
 
         /// <summary>输入框内容与配置不一致时为 true，用于显示「取消 / 确认」按钮。</summary>
@@ -195,7 +199,13 @@ namespace ToolSet.ViewModels.EnvironmentDeploy
 
         private void ConfigureService()
         {
-            // TODO: 功能待定。
+            // 脚本读的是配置文件，界面上的改动还没确认时先落盘，否则配的是旧 dirpath
+            if (HasPendingChanges)
+            {
+                ConfirmEdit();
+            }
+
+            _scripts.RunInConsole(AppScripts.GetScriptPath("local_mysql_operate.bat"), "config");
         }
 
         private void MarkAsSaved()

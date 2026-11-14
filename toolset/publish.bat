@@ -56,6 +56,17 @@ if errorlevel 1 (
 )
 
 echo.
+echo Copying envconf...
+if exist "publish\envconf" rd /s /q "publish\envconf"
+xcopy "envconf" "publish\envconf" /e /i /y >nul
+if errorlevel 1 (
+    echo.
+    echo [ERROR] Copy envconf failed, see the message above.
+    pause
+    exit /b 1
+)
+
+echo.
 echo Copying ssh_key_block...
 if exist "publish\ssh_key_block" rd /s /q "publish\ssh_key_block"
 xcopy "ssh_key_block" "publish\ssh_key_block" /e /i /y >nul

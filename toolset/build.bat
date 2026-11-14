@@ -29,6 +29,16 @@ if errorlevel 1 (
 )
 
 echo.
+echo Copying envconf...
+if exist "build\envconf" rd /s /q "build\envconf"
+xcopy "envconf" "build\envconf" /e /i /y >nul
+if errorlevel 1 (
+    echo [ERROR] Copy envconf failed.
+    pause
+    exit /b 1
+)
+
+echo.
 echo Copying ssh_key_block...
 if exist "build\ssh_key_block" rd /s /q "build\ssh_key_block"
 xcopy "ssh_key_block" "build\ssh_key_block" /e /i /y >nul
