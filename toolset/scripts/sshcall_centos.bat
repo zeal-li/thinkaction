@@ -1,24 +1,24 @@
 @echo off
 setlocal enabledelayedexpansion
 
-:::ç»Ÿä¸€åˆ‡åˆ° 936 ä»£ç é¡µï¼Œä¿è¯æœ¬è„šæœ¬ï¼ˆGBKï¼‰é‡Œçš„ä¸­æ–‡èƒ½æ­£ç¡®ä¼ ç»™ PowerShell è§£æ JSON
+:::Í³Ò»ÇĞµ½ 936 ´úÂëÒ³£¬±£Ö¤±¾½Å±¾£¨GBK£©ÀïµÄÖĞÎÄÄÜÕıÈ·´«¸ø PowerShell ½âÎö JSON
 chcp 936 >nul
 
-:::å‚æ•°: ssh_commond è¦æ‰§è¡Œçš„å‘½ä»¤
+:::²ÎÊı: ssh_commond ÒªÖ´ĞĞµÄÃüÁî
 set "ssh_commond=%~1"
 
-:::ä» exe åŒçº§çš„ config/config.json è¯»å– Centos è¿æ¥é…ç½®
+:::´Ó exe Í¬¼¶µÄ config/config.json ¶ÁÈ¡ Centos Á¬½ÓÅäÖÃ
 set "config_path=%~dp0..\config\config.json"
 
-:::è§£æç”¨çš„ä¸´æ—¶æ–‡ä»¶æ”¾åœ¨è„šæœ¬åŒçº§çš„ tmp ç›®å½•ï¼Œç”¨å‰æ¸…ç†ã€ç”¨å®Œåˆ é™¤
+:::½âÎöÓÃµÄÁÙÊ±ÎÄ¼ş·ÅÔÚ½Å±¾Í¬¼¶µÄ tmp Ä¿Â¼£¬ÓÃÇ°ÇåÀí¡¢ÓÃÍêÉ¾³ı
 set "config_tmp=%~dp0tmp\sshcall_centos_config_tmp.txt"
 if not exist "%~dp0tmp" mkdir "%~dp0tmp"
 if exist "%config_tmp%" del /q "%config_tmp%" >nul 2>nul
 
-powershell -NoProfile -ExecutionPolicy Bypass -Command "$ErrorActionPreference = 'Stop'; $j = ConvertFrom-Json (Get-Content -Raw -LiteralPath '%config_path%' -Encoding UTF8); $s = $j.'ç¯å¢ƒéƒ¨ç½²'.'Centos_SSH_é…ç½®'; 'host=' + $s.hostname; 'port=' + $s.port; 'user=' + $s.username; 'key=' + $s.userkey" > "%config_tmp%"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$ErrorActionPreference = 'Stop'; $j = ConvertFrom-Json (Get-Content -Raw -LiteralPath '%config_path%' -Encoding UTF8); $s = $j.'»·¾³²¿Êğ'.'Centos_SSH_ÅäÖÃ'; 'host=' + $s.hostname; 'port=' + $s.port; 'user=' + $s.username; 'key=' + $s.userkey" > "%config_tmp%"
 
 if errorlevel 1 (
-    for %%i in ("%config_path%") do echo [é”™è¯¯] è¯»å–é…ç½®å¤±è´¥ï¼Œè¯·æ£€æŸ¥ %%~fi æ˜¯å¦ä¸ºåˆæ³• JSON
+    for %%i in ("%config_path%") do echo [´íÎó] ¶ÁÈ¡ÅäÖÃÊ§°Ü£¬Çë¼ì²é %%~fi ÊÇ·ñÎªºÏ·¨ JSON
     del /q "%config_tmp%" >nul 2>nul
     exit /b 1
 )
@@ -31,38 +31,38 @@ for /f "usebackq tokens=1,* delims==" %%a in ("%config_tmp%") do (
 )
 del /q "%config_tmp%" >nul 2>nul
 
-:::è¿æ¥é…ç½®æ£€æŸ¥
+:::Á¬½ÓÅäÖÃ¼ì²é
 if "!ssh_host!"=="" (
-    echo [é”™è¯¯] æœªé…ç½® hostnameï¼Œè¯·åœ¨ç•Œé¢ã€Œç¯å¢ƒéƒ¨ç½² / Centos_SSH_é…ç½®ã€å¡«å†™å¹¶ç‚¹ç¡®è®¤
+    echo [´íÎó] Î´ÅäÖÃ hostname£¬ÇëÔÚ½çÃæ¡¸»·¾³²¿Êğ / Centos_SSH_ÅäÖÃ¡¹ÌîĞ´²¢µãÈ·ÈÏ
     exit /b 1
 )
 if "!ssh_port!"=="" (
-    echo [é”™è¯¯] æœªé…ç½® portï¼Œè¯·åœ¨ç•Œé¢ã€Œç¯å¢ƒéƒ¨ç½² / Centos_SSH_é…ç½®ã€å¡«å†™å¹¶ç‚¹ç¡®è®¤
+    echo [´íÎó] Î´ÅäÖÃ port£¬ÇëÔÚ½çÃæ¡¸»·¾³²¿Êğ / Centos_SSH_ÅäÖÃ¡¹ÌîĞ´²¢µãÈ·ÈÏ
     exit /b 1
 )
 if "!ssh_user!"=="" (
-    echo [é”™è¯¯] æœªé…ç½® usernameï¼Œè¯·åœ¨ç•Œé¢ã€Œç¯å¢ƒéƒ¨ç½² / Centos_SSH_é…ç½®ã€å¡«å†™å¹¶ç‚¹ç¡®è®¤
+    echo [´íÎó] Î´ÅäÖÃ username£¬ÇëÔÚ½çÃæ¡¸»·¾³²¿Êğ / Centos_SSH_ÅäÖÃ¡¹ÌîĞ´²¢µãÈ·ÈÏ
     exit /b 1
 )
 if "!ssh_key!"=="" (
-    echo [é”™è¯¯] æœªé…ç½® userkeyï¼Œè¯·åœ¨ç•Œé¢ã€Œç¯å¢ƒéƒ¨ç½² / Centos_SSH_é…ç½®ã€å¡«å†™å¹¶ç‚¹ç¡®è®¤
+    echo [´íÎó] Î´ÅäÖÃ userkey£¬ÇëÔÚ½çÃæ¡¸»·¾³²¿Êğ / Centos_SSH_ÅäÖÃ¡¹ÌîĞ´²¢µãÈ·ÈÏ
     exit /b 1
 )
 
-:::å‘½ä»¤æ£€æŸ¥
+:::ÃüÁî¼ì²é
 if "!ssh_commond!"=="" (
-    echo [é”™è¯¯] æœªæŒ‡å®šè¦æ‰§è¡Œçš„å‘½ä»¤
-    echo ç”¨æ³•: %~nx0 "å‘½ä»¤"
+    echo [´íÎó] Î´Ö¸¶¨ÒªÖ´ĞĞµÄÃüÁî
+    echo ÓÃ·¨: %~nx0 "ÃüÁî"
     exit /b 1
 )
 
-:::æ‰§è¡Œsshå‘½ä»¤
-echo "[å¼€å§‹æ‰§è¡Œsshå‘½ä»¤] ssh -i !ssh_key! !ssh_user!@!ssh_host! -p !ssh_port! !ssh_commond!"
+:::Ö´ĞĞsshÃüÁî
+echo "[¿ªÊ¼Ö´ĞĞsshÃüÁî] ssh -i !ssh_key! !ssh_user!@!ssh_host! -p !ssh_port! !ssh_commond!"
 ssh -i "!ssh_key!" !ssh_user!@!ssh_host! -p !ssh_port! !ssh_commond!
 set "ssh_result=!errorlevel!"
 
-:::ssh é€€å‡ºåå¯èƒ½æŠŠæ§åˆ¶å°ä»£ç é¡µåˆ‡æˆ 65001ï¼Œåˆ‡å›æ¥ï¼Œå¦åˆ™åé¢çš„ä¸­æ–‡æç¤ºä¼šä¹±ç 
+:::ssh ÍË³öºó¿ÉÄÜ°Ñ¿ØÖÆÌ¨´úÂëÒ³ÇĞ³É 65001£¬ÇĞ»ØÀ´£¬·ñÔòºóÃæµÄÖĞÎÄÌáÊ¾»áÂÒÂë
 chcp 936 >nul
 
-echo "[sshå‘½ä»¤æ‰§è¡Œå®Œæˆ] é€€å‡ºç :!ssh_result!"
+echo "[sshÃüÁîÖ´ĞĞÍê³É] ÍË³öÂë:!ssh_result!"
 exit /b !ssh_result!
