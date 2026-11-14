@@ -3,8 +3,10 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vmCommon="clr-namespace:ToolSet.ViewModels.Common"
              xmlns:vmEnv="clr-namespace:ToolSet.ViewModels.EnvironmentDeploy"
+             xmlns:vmProject="clr-namespace:ToolSet.ViewModels.ProjectManagement"
              xmlns:viewsCommon="clr-namespace:ToolSet.Views.Common"
-             xmlns:viewsEnv="clr-namespace:ToolSet.Views.EnvironmentDeploy">
+             xmlns:viewsEnv="clr-namespace:ToolSet.Views.EnvironmentDeploy"
+             xmlns:viewsProject="clr-namespace:ToolSet.Views.ProjectManagement">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -18,6 +20,10 @@
 
             <DataTemplate DataType="{x:Type vmEnv:EnvironmentDeployViewModel}">
                 <viewsEnv:EnvironmentDeployView />
+            </DataTemplate>
+
+            <DataTemplate DataType="{x:Type vmProject:ProjectManagementViewModel}">
+                <viewsProject:ProjectManagementView />
             </DataTemplate>
         </ResourceDictionary>
     </Application.Resources>

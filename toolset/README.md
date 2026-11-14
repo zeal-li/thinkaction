@@ -236,7 +236,7 @@ AppScripts.Current.RunInConsole(AppScripts.GetScriptPath("sshcall_wsl.bat"), "wh
 ## 后续待办
 
 - [ ] 接入配置文件（`config.ini`）读取项目名、SSH、MySQL、导表路径等
-- [ ] 「管理项目」模块
+- [ ] 「项目管理」模块
 - [ ] 「辅助工具」模块（导出表 / 导出 Sproto / 表结构导出）
 - [x] 命令执行器：调用外部进程并处理输出（`IScriptExecutor`）
 - [x] 应用图标（`Assets\toolset.ico`，16~256 多尺寸）

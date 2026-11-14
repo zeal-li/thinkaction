@@ -5,6 +5,7 @@ using ToolSet.Infrastructure;
 using ToolSet.Infrastructure.Configuration;
 using ToolSet.ViewModels.Common;
 using ToolSet.ViewModels.EnvironmentDeploy;
+using ToolSet.ViewModels.ProjectManagement;
 
 namespace ToolSet.ViewModels
 {
@@ -14,19 +15,18 @@ namespace ToolSet.ViewModels
         public const string ToolSetPath = @"C:\data\ikun_01_cn\common\ToolSet";
 
         private ModuleViewModelBase _selectedModule = null!;
-        private string _selectedBranch = string.Empty;
+        private string? _selectedBranch;
 
         public MainViewModel()
         {
             OpenDirectoryCommand = new RelayCommand(OpenDirectory);
 
-            Branches = new ObservableCollection<string> { "wc16_apkt01gh0.0.1" };
-            SelectedBranch = Branches[0];
+            Branches = new ObservableCollection<string>();
 
             Modules = new ObservableCollection<ModuleViewModelBase>
             {
                 new EnvironmentDeployViewModel(),
-                new PlaceholderModuleViewModel("管理项目", "项目/分支的切换、目录维护等管理功能。"),
+                new ProjectManagementViewModel(),
                 new PlaceholderModuleViewModel("辅助工具", "导出表、导出 Sproto、表结构导出等辅助功能。"),
             };
 
@@ -53,7 +53,7 @@ namespace ToolSet.ViewModels
 
         public ICommand OpenDirectoryCommand { get; }
 
-        public string SelectedBranch
+        public string? SelectedBranch
         {
             get => _selectedBranch;
             set => SetProperty(ref _selectedBranch, value);
