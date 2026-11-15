@@ -20,6 +20,12 @@ namespace ToolSet.Views.ProjectManagement
         /// <summary>用户填写的检出根目录。</summary>
         public string CheckoutRootDir => _viewModel.CheckoutRootDir.Trim();
 
+        /// <summary>用户填写的 Github 地址。</summary>
+        public string Github => _viewModel.Github.Trim();
+
+        /// <summary>用户填写的 Svn 地址。</summary>
+        public string Svn => _viewModel.Svn.Trim();
+
         private void Create_Click(object sender, RoutedEventArgs e) => DialogResult = true;
     }
 }

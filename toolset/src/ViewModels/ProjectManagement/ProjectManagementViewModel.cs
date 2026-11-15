@@ -17,15 +17,6 @@ namespace ToolSet.ViewModels.ProjectManagement
     /// </summary>
     public sealed class ProjectManagementViewModel : ModuleViewModelBase
     {
-        /// <summary>所有项目所在的分组。</summary>
-        public const string ProjectsSection = "项目管理";
-
-        /// <summary>项目创建时间（本项目自己记录，不依赖文件时间）。</summary>
-        private const string CreatedAtKey = "创建时间";
-
-        /// <summary>项目检出根目录。</summary>
-        private const string CheckoutRootDirKey = "检出根目录";
-
         /// <summary>项目名排序：中文按拼音（zh-CN 排序规则），忽略大小写。</summary>
         private static readonly StringComparer NameComparer =
             StringComparer.Create(CultureInfo.GetCultureInfo("zh-CN"), ignoreCase: true);
@@ -38,7 +29,7 @@ namespace ToolSet.ViewModels.ProjectManagement
         }
 
         public ProjectManagementViewModel(IConfigService config)
-            : base(ProjectsSection)
+            : base(ProjectItemViewModel.ProjectsSection)
         {
             _config = config;
             NewProjectCommand = new RelayCommand(NewProject);
@@ -60,15 +51,15 @@ namespace ToolSet.ViewModels.ProjectManagement
 
         private void LoadProjects()
         {
-            if (!_config.Contains(ProjectsSection))
+            if (!_config.Contains(ProjectItemViewModel.ProjectsSection))
             {
                 return;
             }
 
             var projects = new List<ProjectItemViewModel>();
-            foreach (var name in _config.GetKeys(ProjectsSection))
+            foreach (var name in _config.GetKeys(ProjectItemViewModel.ProjectsSection))
             {
-                projects.Add(new ProjectItemViewModel(name, ReadCreatedAt(name)));
+                projects.Add(new ProjectItemViewModel(_config, name, ReadCreatedAt(name)));
             }
 
             // 全部读完再统一按名称排序后展示，与 config.json 里的书写顺序无关
@@ -115,18 +106,20 @@ namespace ToolSet.ViewModels.ProjectManagement
             // 配置里只存 Unix 时间戳，显示时再转成本地时间格式
             var createdAt = DateTimeOffset.Now;
             _config.Set(
-                ProjectPath(name, CreatedAtKey),
+                ProjectPath(name, ProjectItemViewModel.CreatedAtKey),
                 createdAt.ToUnixTimeSeconds().ToString(CultureInfo.InvariantCulture));
-            _config.Set(ProjectPath(name, CheckoutRootDirKey), dialog.CheckoutRootDir);
+            _config.Set(ProjectPath(name, ProjectItemViewModel.CheckoutRootDirKey), dialog.CheckoutRootDir);
+            _config.Set(ProjectPath(name, ProjectItemViewModel.GithubKey), dialog.Github);
+            _config.Set(ProjectPath(name, ProjectItemViewModel.SvnKey), dialog.Svn);
 
-            InsertSorted(new ProjectItemViewModel(name, createdAt.LocalDateTime));
+            InsertSorted(new ProjectItemViewModel(_config, name, createdAt.LocalDateTime));
         }
 
         /// <summary>读取配置里的创建时间戳（Unix 秒）并转成本地时间。</summary>
         private DateTime ReadCreatedAt(string name)
         {
             var timestamp = long.Parse(
-                _config.Get(ProjectPath(name, CreatedAtKey)),
+                _config.Get(ProjectPath(name, ProjectItemViewModel.CreatedAtKey)),
                 CultureInfo.InvariantCulture);
 
             return DateTimeOffset.FromUnixTimeSeconds(timestamp).LocalDateTime;
@@ -172,7 +165,7 @@ namespace ToolSet.ViewModels.ProjectManagement
         }
 
         /// <summary>某个项目分组的路径，如 <c>项目管理/demo</c>。</summary>
-        private static string ProjectPath(string name) => $"{ProjectsSection}/{name}";
+        private static string ProjectPath(string name) => $"{ProjectItemViewModel.ProjectsSection}/{name}";
 
         /// <summary>某个项目下配置项的路径，如 <c>项目管理/demo/创建时间</c>。</summary>
         private static string ProjectPath(string name, string key) => $"{ProjectPath(name)}/{key}";
