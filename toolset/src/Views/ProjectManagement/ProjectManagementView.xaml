@@ -4,6 +4,8 @@
              FontSize="13">
 
     <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
+
         <!-- 项目卡片：与环境部署的配置卡片一致的横铺样式 -->
         <Style x:Key="ProjectCard" TargetType="Border" BasedOn="{StaticResource SectionCard}">
             <Setter Property="HorizontalAlignment" Value="Stretch" />
@@ -80,12 +82,13 @@
                                             Background="{StaticResource LineBrush}"
                                             Margin="0,10,0,10" />
 
-                                    <!-- 项目配置项：检出根目录 / Github / Svn，编辑后即时保存到 config.json -->
+                                    <!-- 项目配置项：检出根目录 / Github / Svn，修改后取消或确认（确认才写回配置） -->
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="Auto" />
                                             <ColumnDefinition Width="*" />
                                             <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
                                         </Grid.ColumnDefinitions>
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto" />
@@ -97,7 +100,7 @@
                                                    Style="{StaticResource FieldLabelText}" />
                                         <TextBox Grid.Column="1"
                                                  Style="{StaticResource AppTextBox}"
-                                                 Text="{Binding CheckoutRootDir, UpdateSourceTrigger=LostFocus}" />
+                                                 Text="{Binding CheckoutRootDir, UpdateSourceTrigger=PropertyChanged}" />
                                         <Button Grid.Column="2"
                                                 Content="浏览"
                                                 Style="{StaticResource ActionButton}"
@@ -111,7 +114,7 @@
                                         <TextBox Grid.Row="1"
                                                  Grid.Column="1"
                                                  Style="{StaticResource AppTextBox}"
-                                                 Text="{Binding Github, UpdateSourceTrigger=LostFocus}" />
+                                                 Text="{Binding Github, UpdateSourceTrigger=PropertyChanged}" />
 
                                         <TextBlock Grid.Row="2"
                                                    Text="Svn"
@@ -119,8 +122,23 @@
                                         <TextBox Grid.Row="2"
                                                  Grid.Column="1"
                                                  Style="{StaticResource AppTextBox}"
-                                                 Text="{Binding Svn, UpdateSourceTrigger=LostFocus}" />
+                                                 Text="{Binding Svn, UpdateSourceTrigger=PropertyChanged}" />
                                     </Grid>
+
+                                    <StackPanel Orientation="Horizontal"
+                                                HorizontalAlignment="Right"
+                                                Margin="0,10,0,0"
+                                                Visibility="{Binding HasPendingChanges, Converter={StaticResource BoolToVisibility}}">
+                                        <Button Content="取消"
+                                                Style="{StaticResource ActionButton}"
+                                                MinWidth="76"
+                                                Margin="0,0,8,0"
+                                                Command="{Binding CancelEditCommand}" />
+                                        <Button Content="确认"
+                                                Style="{StaticResource ActionButton}"
+                                                MinWidth="76"
+                                                Command="{Binding ConfirmEditCommand}" />
+                                    </StackPanel>
                                 </StackPanel>
                             </Border>
                         </DataTemplate>

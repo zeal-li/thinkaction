@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Windows.Input;
 using Microsoft.Win32;
@@ -9,7 +10,8 @@ namespace ToolSet.ViewModels.ProjectManagement
 {
     /// <summary>
     /// 项目管理功能区里的一张项目卡片，用于展示并编辑单个项目的配置。
-    /// 后续新增配置项时，在这里加属性并在 ProjectManagementView 的卡片模板里补对应显示。
+    /// 配置持久化在 config/config.json 的「项目管理/{项目名}」分组下，
+    /// 修改后可取消（恢复为配置值）或确认（写回配置）。
     /// </summary>
     public sealed class ProjectItemViewModel : ViewModelBase
     {
@@ -32,9 +34,13 @@ namespace ToolSet.ViewModels.ProjectManagement
         public const string SvnKey = "Svn";
 
         private readonly IConfigService _config;
+        private readonly Dictionary<string, string> _savedValues = new Dictionary<string, string>();
+
         private string _checkoutRootDir = string.Empty;
         private string _github = string.Empty;
         private string _svn = string.Empty;
+        private bool _hasPendingChanges;
+        private bool _isLoading;
 
         public ProjectItemViewModel(IConfigService config, string name, DateTime createdAt)
         {
@@ -42,11 +48,11 @@ namespace ToolSet.ViewModels.ProjectManagement
             Name = name;
             CreatedAt = createdAt;
 
-            _checkoutRootDir = config.Get(ConfigPath(CheckoutRootDirKey));
-            _github = config.Get(ConfigPath(GithubKey));
-            _svn = config.Get(ConfigPath(SvnKey));
-
+            CancelEditCommand = new RelayCommand(CancelEdit);
+            ConfirmEditCommand = new RelayCommand(ConfirmEdit);
             BrowseCheckoutRootDirCommand = new RelayCommand(BrowseCheckoutRootDir);
+
+            LoadFromConfig();
         }
 
         public string Name { get; }
@@ -55,8 +61,19 @@ namespace ToolSet.ViewModels.ProjectManagement
 
         public string CreatedAtText => $"创建于 {CreatedAt.ToString(CreatedAtDisplayFormat, CultureInfo.InvariantCulture)}";
 
+        public ICommand CancelEditCommand { get; }
+
+        public ICommand ConfirmEditCommand { get; }
+
         /// <summary>浏览选择检出根目录。</summary>
         public ICommand BrowseCheckoutRootDirCommand { get; }
+
+        /// <summary>输入框内容与配置不一致时为 true，用于显示「取消 / 确认」按钮。</summary>
+        public bool HasPendingChanges
+        {
+            get => _hasPendingChanges;
+            private set => SetProperty(ref _hasPendingChanges, value);
+        }
 
         /// <summary>项目检出根目录。</summary>
         public string CheckoutRootDir
@@ -66,7 +83,7 @@ namespace ToolSet.ViewModels.ProjectManagement
             {
                 if (SetProperty(ref _checkoutRootDir, value))
                 {
-                    _config.Set(ConfigPath(CheckoutRootDirKey), value);
+                    RefreshPendingChanges();
                 }
             }
         }
@@ -79,7 +96,7 @@ namespace ToolSet.ViewModels.ProjectManagement
             {
                 if (SetProperty(ref _github, value))
                 {
-                    _config.Set(ConfigPath(GithubKey), value);
+                    RefreshPendingChanges();
                 }
             }
         }
@@ -92,12 +109,35 @@ namespace ToolSet.ViewModels.ProjectManagement
             {
                 if (SetProperty(ref _svn, value))
                 {
-                    _config.Set(ConfigPath(SvnKey), value);
+                    RefreshPendingChanges();
                 }
             }
         }
 
-        private string ConfigPath(string key) => $"{ProjectsSection}/{Name}/{key}";
+        private void LoadFromConfig()
+        {
+            _isLoading = true;
+            CheckoutRootDir = _config.Get(ConfigPath(CheckoutRootDirKey));
+            Github = _config.Get(ConfigPath(GithubKey));
+            Svn = _config.Get(ConfigPath(SvnKey));
+            _isLoading = false;
+
+            MarkAsSaved();
+        }
+
+        private void CancelEdit() => LoadFromConfig();
+
+        private void ConfirmEdit()
+        {
+            _config.SetValues(SectionPath, new Dictionary<string, string>
+            {
+                [CheckoutRootDirKey] = CheckoutRootDir,
+                [GithubKey] = Github,
+                [SvnKey] = Svn,
+            });
+
+            MarkAsSaved();
+        }
 
         private void BrowseCheckoutRootDir()
         {
@@ -111,5 +151,31 @@ namespace ToolSet.ViewModels.ProjectManagement
                 CheckoutRootDir = dialog.FolderName;
             }
         }
+
+        private void MarkAsSaved()
+        {
+            _savedValues[CheckoutRootDirKey] = CheckoutRootDir;
+            _savedValues[GithubKey] = Github;
+            _savedValues[SvnKey] = Svn;
+
+            HasPendingChanges = false;
+        }
+
+        private void RefreshPendingChanges()
+        {
+            if (_isLoading)
+            {
+                return;
+            }
+
+            HasPendingChanges =
+                CheckoutRootDir != _savedValues[CheckoutRootDirKey]
+                || Github != _savedValues[GithubKey]
+                || Svn != _savedValues[SvnKey];
+        }
+
+        private string SectionPath => $"{ProjectsSection}/{Name}";
+
+        private string ConfigPath(string key) => $"{SectionPath}/{key}";
     }
 }
