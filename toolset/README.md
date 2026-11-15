@@ -173,7 +173,7 @@ config.Remove("辅助工具/导表/线程数");
 - 配置值不能为 `null`（`Set` / `SetValues` 直接抛 `ArgumentNullException`），空字符串是合法值
 - `AutoSave` 默认 `true`（每次 `Set` / `Remove` 立即落盘）；批量写入用 `SetValues`，或先置 `AutoSave = false` 再手动 `Save()`
 - 文件位置：exe 同级 `config/config.json`；手写时允许注释和尾随逗号，保存时会被重写为缩进 JSON
-- 不做静默兜底：读取不存在的节点抛 `KeyNotFoundException`，需要判空请用 `Find` / `Contains`
+- 读取不存在的节点（或节点本身是分组）返回空字符串；需要区分「没配」和「配了空串」请用 `Find` / `Contains`
 
 ---
 

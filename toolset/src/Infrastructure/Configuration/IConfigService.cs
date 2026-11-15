@@ -21,7 +21,7 @@ namespace ToolSet.Infrastructure.Configuration
         /// <summary>读取配置值，节点不存在或本身是分组时返回 null。</summary>
         string? Find(string path);
 
-        /// <summary>读取配置值，节点不存在或本身是分组时抛出异常。</summary>
+        /// <summary>读取配置值，节点不存在或本身是分组时返回空字符串。</summary>
         string Get(string path);
 
         int GetInt(string path);

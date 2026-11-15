@@ -76,17 +76,8 @@ namespace ToolSet.Infrastructure.Configuration
         {
             lock (_sync)
             {
-                if (!TryGetRaw(path, out var raw))
-                {
-                    throw new KeyNotFoundException($"配置项不存在：{path}");
-                }
-
-                if (raw is not string text)
-                {
-                    throw new InvalidOperationException($"路径 {path} 是配置分组，不是配置值。");
-                }
-
-                return text;
+                // 拿不到（节点不存在或本身是分组）时返回默认空字符串，不再抛异常
+                return TryGetRaw(path, out var raw) && raw is string text ? text : string.Empty;
             }
         }
 
