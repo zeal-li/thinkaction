@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
@@ -43,7 +45,7 @@ namespace ToolSet.ViewModels.ProjectManagement
 
         public ICommand NewProjectCommand { get; }
 
-        /// <summary>打开项目目录，功能待定。</summary>
+        /// <summary>打开「检出根目录/项目名」目录。</summary>
         public ICommand OpenProjectDirectoryCommand { get; }
 
         /// <summary>删除项目（从 config.json 移除并刷新列表），参数为 <see cref="ProjectItemViewModel"/>。</summary>
@@ -125,10 +127,23 @@ namespace ToolSet.ViewModels.ProjectManagement
             return DateTimeOffset.FromUnixTimeSeconds(timestamp).LocalDateTime;
         }
 
-        /// <summary>打开选中的项目目录，功能待定。</summary>
+        /// <summary>打开「检出根目录/项目名」目录，参数为 <see cref="ProjectItemViewModel"/>。</summary>
         private void OpenProjectDirectory(object? parameter)
         {
-            // TODO: 项目的目录配置确定后在这里打开，参数是 ProjectItemViewModel
+            var project = (ProjectItemViewModel)parameter!;
+            var path = Path.Combine(project.CheckoutRootDir, project.Name);
+
+            if (!Directory.Exists(path))
+            {
+                MessageBox.Show(
+                    "项目目录不存在。",
+                    "提示",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+                return;
+            }
+
+            Process.Start("explorer.exe", path);
         }
 
         private void DeleteProject(object? parameter)

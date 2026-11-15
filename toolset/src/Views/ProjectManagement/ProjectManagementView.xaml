@@ -163,7 +163,7 @@
                                HorizontalAlignment="Center"
                                FontSize="14"
                                Foreground="{StaticResource TextPrimaryBrush}" />
-                    <TextBlock Text="点击右上角「新建项目」创建第一个项目。"
+                    <TextBlock Text="点击「新建项目」创建第一个项目。"
                                HorizontalAlignment="Center"
                                Margin="0,8,0,0"
                                FontSize="12"

@@ -1,5 +1,8 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Windows;
 using System.Windows.Input;
 using ToolSet.Infrastructure;
 using ToolSet.Infrastructure.Configuration;
@@ -11,9 +14,6 @@ namespace ToolSet.ViewModels
 {
     public sealed class MainViewModel : ViewModelBase, IShell
     {
-        // TODO: 后续改为读取配置文件（对应原 ToolSet.bat 的 scripts/config.ini）
-        public const string ToolSetPath = @"C:\data\ikun_01_cn\common\ToolSet";
-
         /// <summary>主界面相关配置所在的分组。</summary>
         public const string MainSection = "主界面";
 
@@ -93,7 +93,33 @@ namespace ToolSet.ViewModels
             private set => SetProperty(ref _selectedModule, value);
         }
 
-        private void OpenDirectory() => Process.Start("explorer.exe", ToolSetPath);
+        /// <summary>打开当前选中项目「检出根目录/项目名」目录。</summary>
+        private void OpenDirectory()
+        {
+            var project = _projectManagement.Projects.FirstOrDefault(p => p.Name == SelectedProject);
+            if (project is null)
+            {
+                MessageBox.Show(
+                    "当前没有可选项目。",
+                    "提示",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+                return;
+            }
+
+            var path = Path.Combine(project.CheckoutRootDir, project.Name);
+            if (!Directory.Exists(path))
+            {
+                MessageBox.Show(
+                    "项目目录不存在。",
+                    "提示",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+                return;
+            }
+
+            Process.Start("explorer.exe", path);
+        }
 
         /// <summary>
         /// 根据项目管理里的项目池刷新顶部下拉框，并解析当前选中项目：
