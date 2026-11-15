@@ -43,8 +43,8 @@
                         <ComboBox Grid.Column="1"
                                   Style="{StaticResource AppComboBox}"
                                   MinWidth="0"
-                                  ItemsSource="{Binding Branches}"
-                                  SelectedItem="{Binding SelectedBranch}" />
+                                  ItemsSource="{Binding Projects}"
+                                  SelectedItem="{Binding SelectedProject}" />
                     </Grid>
                 </Border>
 
