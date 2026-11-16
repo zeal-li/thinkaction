@@ -155,52 +155,17 @@
                                                  Style="{StaticResource AppTextBox}"
                                                  Text="{Binding Svn, UpdateSourceTrigger=PropertyChanged}" />
 
-                                        <!-- 对「检出根目录/项目名」执行 svn 操作（走 TortoiseSVN 界面） -->
-                                        <StackPanel Grid.Row="2"
-                                                    Grid.Column="2"
-                                                    Grid.ColumnSpan="2"
-                                                    Orientation="Horizontal"
-                                                    Margin="8,0,0,8">
-                                            <Button Content="Checkout"
-                                                    Style="{StaticResource ActionButton}"
-                                                    MinWidth="0"
-                                                    Height="30"
-                                                    Padding="8,0"
-                                                    FontSize="12"
-                                                    Command="{Binding SvnCheckoutCommand}" />
-                                            <Button Content="Update"
-                                                    Style="{StaticResource ActionButton}"
-                                                    MinWidth="0"
-                                                    Height="30"
-                                                    Padding="8,0"
-                                                    FontSize="12"
-                                                    Margin="6,0,0,0"
-                                                    Command="{Binding SvnUpdateCommand}" />
-                                            <Button Content="Commit"
-                                                    Style="{StaticResource ActionButton}"
-                                                    MinWidth="0"
-                                                    Height="30"
-                                                    Padding="8,0"
-                                                    FontSize="12"
-                                                    Margin="6,0,0,0"
-                                                    Command="{Binding SvnCommitCommand}" />
-                                            <Button Content="Cleanup"
-                                                    Style="{StaticResource ActionButton}"
-                                                    MinWidth="0"
-                                                    Height="30"
-                                                    Padding="8,0"
-                                                    FontSize="12"
-                                                    Margin="6,0,0,0"
-                                                    Command="{Binding SvnCleanupCommand}" />
-                                            <Button Content="Log"
-                                                    Style="{StaticResource ActionButton}"
-                                                    MinWidth="0"
-                                                    Height="30"
-                                                    Padding="8,0"
-                                                    FontSize="12"
-                                                    Margin="6,0,0,0"
-                                                    Command="{Binding SvnShowLogCommand}" />
-                                        </StackPanel>
+                                        <!-- svn 操作都收进「版本管理」弹窗，卡片上只留一个入口 -->
+                                        <Button Grid.Row="2"
+                                                Grid.Column="2"
+                                                Content="版本管理"
+                                                Style="{StaticResource ActionButton}"
+                                                MinWidth="0"
+                                                Height="30"
+                                                Padding="12,0"
+                                                FontSize="12"
+                                                Margin="8,0,0,8"
+                                                Command="{Binding OpenSvnManagementCommand}" />
                                     </Grid>
 
                                     <StackPanel Orientation="Horizontal"

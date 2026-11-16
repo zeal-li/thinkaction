@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Windows;
 using System.Windows.Input;
 using Microsoft.Win32;
 using ToolSet.Infrastructure;
 using ToolSet.Infrastructure.Configuration;
 using ToolSet.Infrastructure.Scripts;
+using ToolSet.Views.ProjectManagement;
 
 namespace ToolSet.ViewModels.ProjectManagement
 {
@@ -52,6 +54,7 @@ namespace ToolSet.ViewModels.ProjectManagement
             CancelEditCommand = new RelayCommand(CancelEdit);
             ConfirmEditCommand = new RelayCommand(ConfirmEdit);
             BrowseCheckoutRootDirCommand = new RelayCommand(BrowseCheckoutRootDir);
+            OpenSvnManagementCommand = new RelayCommand(OpenSvnManagement);
             GitCloneCommand = new RelayCommand(GitClone);
             GitPullCommand = new RelayCommand(GitPull);
             GitPushCommand = new RelayCommand(GitPush);
@@ -76,6 +79,9 @@ namespace ToolSet.ViewModels.ProjectManagement
 
         /// <summary>浏览选择检出根目录。</summary>
         public ICommand BrowseCheckoutRootDirCommand { get; }
+
+        /// <summary>打开「版本管理」弹窗，集中做该项目的 svn 操作。</summary>
+        public ICommand OpenSvnManagementCommand { get; }
 
         /// <summary>在「检出根目录」下检出「项目名」目录，地址取当前填写的 Github。</summary>
         public ICommand GitCloneCommand { get; }
@@ -183,6 +189,17 @@ namespace ToolSet.ViewModels.ProjectManagement
             {
                 CheckoutRootDir = dialog.FolderName;
             }
+        }
+
+        private void OpenSvnManagement()
+        {
+            var window = new SvnManagementWindow
+            {
+                Owner = Application.Current.MainWindow,
+                DataContext = this,
+            };
+
+            window.ShowDialog();
         }
 
         private void GitClone() => RunGit("clone");
