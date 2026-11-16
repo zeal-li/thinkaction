@@ -9,6 +9,7 @@ using ToolSet.Infrastructure.Configuration;
 using ToolSet.ViewModels.Common;
 using ToolSet.ViewModels.EnvironmentDeploy;
 using ToolSet.ViewModels.ProjectManagement;
+using ToolSet.Views.ProjectManagement;
 
 namespace ToolSet.ViewModels
 {
@@ -23,6 +24,8 @@ namespace ToolSet.ViewModels
         private static string CurrentSelectProjectPath => $"{MainSection}/{CurrentSelectProjectKey}";
 
         private readonly ProjectManagementViewModel _projectManagement;
+        private readonly RelayCommand _openGitManagementCommand;
+        private readonly RelayCommand _openSvnManagementCommand;
         private ModuleViewModelBase _selectedModule = null!;
         private string? _selectedProject;
         private bool _isSynchronizingProjects;
@@ -30,6 +33,11 @@ namespace ToolSet.ViewModels
         public MainViewModel()
         {
             OpenDirectoryCommand = new RelayCommand(OpenDirectory);
+
+            _openGitManagementCommand = new RelayCommand(OpenGitManagement, HasSelectedProject);
+            _openSvnManagementCommand = new RelayCommand(OpenSvnManagement, HasSelectedProject);
+            OpenGitManagementCommand = _openGitManagementCommand;
+            OpenSvnManagementCommand = _openSvnManagementCommand;
 
             Projects = new ObservableCollection<string>();
 
@@ -69,6 +77,12 @@ namespace ToolSet.ViewModels
 
         public ICommand OpenDirectoryCommand { get; }
 
+        /// <summary>打开当前选中项目的「Git 版本管理」弹窗。</summary>
+        public ICommand OpenGitManagementCommand { get; }
+
+        /// <summary>打开当前选中项目的「Svn 版本管理」弹窗。</summary>
+        public ICommand OpenSvnManagementCommand { get; }
+
         public string? SelectedProject
         {
             get => _selectedProject;
@@ -84,6 +98,8 @@ namespace ToolSet.ViewModels
                 {
                     Config.Set(CurrentSelectProjectPath, value ?? string.Empty);
                 }
+
+                RaiseVersionCommandStates();
             }
         }
 
@@ -96,7 +112,7 @@ namespace ToolSet.ViewModels
         /// <summary>打开当前选中项目「检出根目录/项目名」目录。</summary>
         private void OpenDirectory()
         {
-            var project = _projectManagement.Projects.FirstOrDefault(p => p.Name == SelectedProject);
+            var project = SelectedProjectItem;
             if (project is null)
             {
                 MessageBox.Show(
@@ -119,6 +135,42 @@ namespace ToolSet.ViewModels
             }
 
             Process.Start("explorer.exe", path);
+        }
+
+        /// <summary>打开当前选中项目的「Git 版本管理」弹窗。</summary>
+        private void OpenGitManagement()
+        {
+            var project = SelectedProjectItem!;
+            ShowVersionManagementWindow(new GitManagementWindow(
+                new GitManagementViewModel(project.Name, project.CheckoutRootDir, project.Github)));
+        }
+
+        /// <summary>打开当前选中项目的「Svn 版本管理」弹窗。</summary>
+        private void OpenSvnManagement()
+        {
+            var project = SelectedProjectItem!;
+            ShowVersionManagementWindow(new SvnManagementWindow(
+                new SvnManagementViewModel(project.Name, project.CheckoutRootDir, project.Svn)));
+        }
+
+        /// <summary>版本管理弹窗都是模态的，挂在主窗口上。</summary>
+        private static void ShowVersionManagementWindow(Window window)
+        {
+            window.Owner = Application.Current.MainWindow;
+            window.ShowDialog();
+        }
+
+        /// <summary>当前选中项目对应的卡片 ViewModel，没有选中项目时为 null。</summary>
+        private ProjectItemViewModel? SelectedProjectItem
+            => _projectManagement.Projects.FirstOrDefault(project => project.Name == SelectedProject);
+
+        private bool HasSelectedProject() => SelectedProjectItem is not null;
+
+        /// <summary>Git / Svn 按钮要跟着选中项目一起变可用状态。</summary>
+        private void RaiseVersionCommandStates()
+        {
+            _openGitManagementCommand.RaiseCanExecuteChanged();
+            _openSvnManagementCommand.RaiseCanExecuteChanged();
         }
 
         /// <summary>

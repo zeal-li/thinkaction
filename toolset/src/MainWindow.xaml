@@ -29,23 +29,37 @@
                 Margin="5,0,5,5">
             <DockPanel>
                 <Border DockPanel.Dock="Top" Padding="20,22,20,14">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <Button Content="目录"
-                                Style="{StaticResource LinkButton}"
-                                Margin="0,0,10,0"
-                                VerticalAlignment="Center"
-                                ToolTip="打开目录"
-                                Command="{Binding OpenDirectoryCommand}" />
-                        <ComboBox Grid.Column="1"
-                                  Style="{StaticResource AppComboBox}"
+                    <StackPanel>
+                        <ComboBox Style="{StaticResource AppComboBox}"
                                   MinWidth="0"
                                   ItemsSource="{Binding Projects}"
                                   SelectedItem="{Binding SelectedProject}" />
-                    </Grid>
+                        <UniformGrid Rows="1" Columns="3" Margin="0,9,0,0">
+                            <Button Content="目录"
+                                    Style="{StaticResource ActionButton}"
+                                    MinWidth="0"
+                                    Height="28"
+                                    FontSize="12"
+                                    Padding="0"
+                                    Margin="0,0,6,0"
+                                    Command="{Binding OpenDirectoryCommand}" />
+                            <Button Content="Git"
+                                    Style="{StaticResource ActionButton}"
+                                    MinWidth="0"
+                                    Height="28"
+                                    FontSize="12"
+                                    Padding="0"
+                                    Margin="0,0,6,0"
+                                    Command="{Binding OpenGitManagementCommand}" />
+                            <Button Content="Svn"
+                                    Style="{StaticResource ActionButton}"
+                                    MinWidth="0"
+                                    Height="28"
+                                    FontSize="12"
+                                    Padding="0"
+                                    Command="{Binding OpenSvnManagementCommand}" />
+                        </UniformGrid>
+                    </StackPanel>
                 </Border>
 
                 <ItemsControl ItemsSource="{Binding Modules}" Margin="10,0,10,10">
