@@ -119,7 +119,7 @@
                                         <!-- Github 的版本管理入口：打开 git 操作弹窗 -->
                                         <Button Grid.Row="1"
                                                 Grid.Column="2"
-                                                Content="版本管理"
+                                                Content="Git 版本管理"
                                                 Style="{StaticResource ActionButton}"
                                                 MinWidth="0"
                                                 Height="30"
@@ -139,7 +139,7 @@
                                         <!-- Svn 的版本管理入口：打开 svn 操作弹窗 -->
                                         <Button Grid.Row="2"
                                                 Grid.Column="2"
-                                                Content="版本管理"
+                                                Content="Svn 版本管理"
                                                 Style="{StaticResource ActionButton}"
                                                 MinWidth="0"
                                                 Height="30"
