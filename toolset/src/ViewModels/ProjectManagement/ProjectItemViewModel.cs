@@ -5,6 +5,7 @@ using System.Windows.Input;
 using Microsoft.Win32;
 using ToolSet.Infrastructure;
 using ToolSet.Infrastructure.Configuration;
+using ToolSet.Infrastructure.Scripts;
 
 namespace ToolSet.ViewModels.ProjectManagement
 {
@@ -51,6 +52,9 @@ namespace ToolSet.ViewModels.ProjectManagement
             CancelEditCommand = new RelayCommand(CancelEdit);
             ConfirmEditCommand = new RelayCommand(ConfirmEdit);
             BrowseCheckoutRootDirCommand = new RelayCommand(BrowseCheckoutRootDir);
+            GitCloneCommand = new RelayCommand(GitClone);
+            GitPullCommand = new RelayCommand(GitPull);
+            GitPushCommand = new RelayCommand(GitPush);
 
             LoadFromConfig();
         }
@@ -67,6 +71,15 @@ namespace ToolSet.ViewModels.ProjectManagement
 
         /// <summary>浏览选择检出根目录。</summary>
         public ICommand BrowseCheckoutRootDirCommand { get; }
+
+        /// <summary>在「检出根目录」下检出「项目名」目录，地址取当前填写的 Github。</summary>
+        public ICommand GitCloneCommand { get; }
+
+        /// <summary>对「检出根目录/项目名」执行 git pull。</summary>
+        public ICommand GitPullCommand { get; }
+
+        /// <summary>对「检出根目录/项目名」执行 git push。</summary>
+        public ICommand GitPushCommand { get; }
 
         /// <summary>输入框内容与配置不一致时为 true，用于显示「取消 / 确认」按钮。</summary>
         public bool HasPendingChanges
@@ -151,6 +164,24 @@ namespace ToolSet.ViewModels.ProjectManagement
                 CheckoutRootDir = dialog.FolderName;
             }
         }
+
+        private void GitClone() => RunGit("clone");
+
+        private void GitPull() => RunGit("pull");
+
+        private void GitPush() => RunGit("push");
+
+        /// <summary>
+        /// git 操作统一走 scripts/git_operate.bat，参数按「功能 检出根目录 项目名 Github地址」传，
+        /// 用的是输入框里的当前值。
+        /// </summary>
+        private void RunGit(string action)
+            => AppScripts.Current.RunInConsole(
+                AppScripts.GetScriptPath("git_operate.bat"),
+                action,
+                CheckoutRootDir,
+                Name,
+                Github);
 
         private void MarkAsSaved()
         {

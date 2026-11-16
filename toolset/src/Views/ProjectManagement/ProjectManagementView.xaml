@@ -116,6 +116,37 @@
                                                  Style="{StaticResource AppTextBox}"
                                                  Text="{Binding Github, UpdateSourceTrigger=PropertyChanged}" />
 
+                                        <!-- 对「检出根目录/项目名」执行 git 操作 -->
+                                        <StackPanel Grid.Row="1"
+                                                    Grid.Column="2"
+                                                    Grid.ColumnSpan="2"
+                                                    Orientation="Horizontal"
+                                                    Margin="8,0,0,8">
+                                            <Button Content="Clone"
+                                                    Style="{StaticResource ActionButton}"
+                                                    MinWidth="0"
+                                                    Height="30"
+                                                    Padding="10,0"
+                                                    FontSize="12"
+                                                    Command="{Binding GitCloneCommand}" />
+                                            <Button Content="Pull"
+                                                    Style="{StaticResource ActionButton}"
+                                                    MinWidth="0"
+                                                    Height="30"
+                                                    Padding="10,0"
+                                                    FontSize="12"
+                                                    Margin="8,0,0,0"
+                                                    Command="{Binding GitPullCommand}" />
+                                            <Button Content="Push"
+                                                    Style="{StaticResource ActionButton}"
+                                                    MinWidth="0"
+                                                    Height="30"
+                                                    Padding="10,0"
+                                                    FontSize="12"
+                                                    Margin="8,0,0,0"
+                                                    Command="{Binding GitPushCommand}" />
+                                        </StackPanel>
+
                                         <TextBlock Grid.Row="2"
                                                    Text="Svn"
                                                    Style="{StaticResource FieldLabelText}" />
