@@ -54,6 +54,7 @@ namespace ToolSet.ViewModels.ProjectManagement
             CancelEditCommand = new RelayCommand(CancelEdit);
             ConfirmEditCommand = new RelayCommand(ConfirmEdit);
             BrowseCheckoutRootDirCommand = new RelayCommand(BrowseCheckoutRootDir);
+            OpenGitManagementCommand = new RelayCommand(OpenGitManagement);
             OpenSvnManagementCommand = new RelayCommand(OpenSvnManagement);
             GitCloneCommand = new RelayCommand(GitClone);
             GitPullCommand = new RelayCommand(GitPull);
@@ -80,7 +81,10 @@ namespace ToolSet.ViewModels.ProjectManagement
         /// <summary>浏览选择检出根目录。</summary>
         public ICommand BrowseCheckoutRootDirCommand { get; }
 
-        /// <summary>打开「版本管理」弹窗，集中做该项目的 svn 操作。</summary>
+        /// <summary>打开 Github 的「版本管理」弹窗，集中做该项目的 git 操作。</summary>
+        public ICommand OpenGitManagementCommand { get; }
+
+        /// <summary>打开 Svn 的「版本管理」弹窗，集中做该项目的 svn 操作。</summary>
         public ICommand OpenSvnManagementCommand { get; }
 
         /// <summary>在「检出根目录」下检出「项目名」目录，地址取当前填写的 Github。</summary>
@@ -191,14 +195,15 @@ namespace ToolSet.ViewModels.ProjectManagement
             }
         }
 
-        private void OpenSvnManagement()
-        {
-            var window = new SvnManagementWindow
-            {
-                Owner = Application.Current.MainWindow,
-                DataContext = this,
-            };
+        private void OpenGitManagement() => ShowVersionManagementWindow(new GitManagementWindow());
 
+        private void OpenSvnManagement() => ShowVersionManagementWindow(new SvnManagementWindow());
+
+        /// <summary>版本管理弹窗都以当前项目为 DataContext，模态打开。</summary>
+        private void ShowVersionManagementWindow(Window window)
+        {
+            window.Owner = Application.Current.MainWindow;
+            window.DataContext = this;
             window.ShowDialog();
         }
 

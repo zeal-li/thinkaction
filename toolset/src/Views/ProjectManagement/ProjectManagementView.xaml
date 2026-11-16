@@ -116,36 +116,17 @@
                                                  Style="{StaticResource AppTextBox}"
                                                  Text="{Binding Github, UpdateSourceTrigger=PropertyChanged}" />
 
-                                        <!-- 对「检出根目录/项目名」执行 git 操作 -->
-                                        <StackPanel Grid.Row="1"
-                                                    Grid.Column="2"
-                                                    Grid.ColumnSpan="2"
-                                                    Orientation="Horizontal"
-                                                    Margin="8,0,0,8">
-                                            <Button Content="Clone"
-                                                    Style="{StaticResource ActionButton}"
-                                                    MinWidth="0"
-                                                    Height="30"
-                                                    Padding="10,0"
-                                                    FontSize="12"
-                                                    Command="{Binding GitCloneCommand}" />
-                                            <Button Content="Pull"
-                                                    Style="{StaticResource ActionButton}"
-                                                    MinWidth="0"
-                                                    Height="30"
-                                                    Padding="10,0"
-                                                    FontSize="12"
-                                                    Margin="8,0,0,0"
-                                                    Command="{Binding GitPullCommand}" />
-                                            <Button Content="Push"
-                                                    Style="{StaticResource ActionButton}"
-                                                    MinWidth="0"
-                                                    Height="30"
-                                                    Padding="10,0"
-                                                    FontSize="12"
-                                                    Margin="8,0,0,0"
-                                                    Command="{Binding GitPushCommand}" />
-                                        </StackPanel>
+                                        <!-- Github 的版本管理入口：打开 git 操作弹窗 -->
+                                        <Button Grid.Row="1"
+                                                Grid.Column="2"
+                                                Content="版本管理"
+                                                Style="{StaticResource ActionButton}"
+                                                MinWidth="0"
+                                                Height="30"
+                                                Padding="12,0"
+                                                FontSize="12"
+                                                Margin="8,0,0,8"
+                                                Command="{Binding OpenGitManagementCommand}" />
 
                                         <TextBlock Grid.Row="2"
                                                    Text="Svn"
@@ -155,7 +136,7 @@
                                                  Style="{StaticResource AppTextBox}"
                                                  Text="{Binding Svn, UpdateSourceTrigger=PropertyChanged}" />
 
-                                        <!-- svn 操作都收进「版本管理」弹窗，卡片上只留一个入口 -->
+                                        <!-- Svn 的版本管理入口：打开 svn 操作弹窗 -->
                                         <Button Grid.Row="2"
                                                 Grid.Column="2"
                                                 Content="版本管理"
