@@ -4,9 +4,11 @@
              xmlns:vmCommon="clr-namespace:ToolSet.ViewModels.Common"
              xmlns:vmEnv="clr-namespace:ToolSet.ViewModels.EnvironmentDeploy"
              xmlns:vmProject="clr-namespace:ToolSet.ViewModels.ProjectManagement"
+             xmlns:vmHelper="clr-namespace:ToolSet.ViewModels.ProjectHelper"
              xmlns:viewsCommon="clr-namespace:ToolSet.Views.Common"
              xmlns:viewsEnv="clr-namespace:ToolSet.Views.EnvironmentDeploy"
-             xmlns:viewsProject="clr-namespace:ToolSet.Views.ProjectManagement">
+             xmlns:viewsProject="clr-namespace:ToolSet.Views.ProjectManagement"
+             xmlns:viewsHelper="clr-namespace:ToolSet.Views.ProjectHelper">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -24,6 +26,10 @@
 
             <DataTemplate DataType="{x:Type vmProject:ProjectManagementViewModel}">
                 <viewsProject:ProjectManagementView />
+            </DataTemplate>
+
+            <DataTemplate DataType="{x:Type vmHelper:ProjectHelperViewModel}">
+                <viewsHelper:ProjectHelperView />
             </DataTemplate>
         </ResourceDictionary>
     </Application.Resources>

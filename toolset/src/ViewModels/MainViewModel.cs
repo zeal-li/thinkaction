@@ -6,8 +6,8 @@ using System.Windows;
 using System.Windows.Input;
 using ToolSet.Infrastructure;
 using ToolSet.Infrastructure.Configuration;
-using ToolSet.ViewModels.Common;
 using ToolSet.ViewModels.EnvironmentDeploy;
+using ToolSet.ViewModels.ProjectHelper;
 using ToolSet.ViewModels.ProjectManagement;
 using ToolSet.Views.ProjectManagement;
 
@@ -49,7 +49,7 @@ namespace ToolSet.ViewModels
             {
                 new EnvironmentDeployViewModel(),
                 _projectManagement,
-                new PlaceholderModuleViewModel("辅助工具", "导出表、导出 Sproto、表结构导出等辅助功能。"),
+                new ProjectHelperViewModel(),
             };
 
             foreach (var module in Modules)

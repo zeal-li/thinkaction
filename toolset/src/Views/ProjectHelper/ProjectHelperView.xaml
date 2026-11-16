@@ -1,0 +1,19 @@
+<UserControl x:Class="ToolSet.Views.ProjectHelper.ProjectHelperView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:viewsHelper="clr-namespace:ToolSet.Views.ProjectHelper"
+             FontSize="13">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto"
+                  HorizontalScrollBarVisibility="Disabled">
+        <StackPanel>
+
+            <!-- ===== 协议导出 ===== -->
+            <viewsHelper:ExportProtocolView DataContext="{Binding ProtocolExport}" />
+
+            <!-- ===== 配置导出 ===== -->
+            <viewsHelper:ExportConfigView DataContext="{Binding ConfigExport}" />
+
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>
