@@ -28,7 +28,7 @@
         <StackPanel>
 
             <!-- ===== 卡片头：项目名 ===== -->
-            <TextBlock Text="{Binding Name}"
+            <TextBlock Text="{Binding ProjectName}"
                        Style="{StaticResource CardTitleText}"
                        Margin="0" />
 
@@ -77,34 +77,34 @@
                         Height="34"
                         FontSize="12"
                         Margin="0,0,8,0"
-                        Command="{Binding SvnCheckoutCommand}" />
+                        Command="{Binding CheckoutCommand}" />
                 <Button Content="Update"
                         Style="{StaticResource ActionButton}"
                         MinWidth="0"
                         Height="34"
                         FontSize="12"
                         Margin="0,0,8,0"
-                        Command="{Binding SvnUpdateCommand}" />
+                        Command="{Binding UpdateCommand}" />
                 <Button Content="Commit"
                         Style="{StaticResource ActionButton}"
                         MinWidth="0"
                         Height="34"
                         FontSize="12"
                         Margin="0,0,8,0"
-                        Command="{Binding SvnCommitCommand}" />
+                        Command="{Binding CommitCommand}" />
                 <Button Content="Cleanup"
                         Style="{StaticResource ActionButton}"
                         MinWidth="0"
                         Height="34"
                         FontSize="12"
                         Margin="0,0,8,0"
-                        Command="{Binding SvnCleanupCommand}" />
+                        Command="{Binding CleanupCommand}" />
                 <Button Content="Log"
                         Style="{StaticResource ActionButton}"
                         MinWidth="0"
                         Height="34"
                         FontSize="12"
-                        Command="{Binding SvnShowLogCommand}" />
+                        Command="{Binding ShowLogCommand}" />
             </UniformGrid>
 
             <TextBlock Text="操作会调起 TortoiseSVN 界面完成，结果由 TortoiseSVN 自己提示。"

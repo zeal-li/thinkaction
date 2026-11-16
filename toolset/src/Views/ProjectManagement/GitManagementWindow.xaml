@@ -28,7 +28,7 @@
         <StackPanel>
 
             <!-- ===== 卡片头：项目名 ===== -->
-            <TextBlock Text="{Binding Name}"
+            <TextBlock Text="{Binding ProjectName}"
                        Style="{StaticResource CardTitleText}"
                        Margin="0" />
 
@@ -77,20 +77,20 @@
                         Height="34"
                         FontSize="12"
                         Margin="0,0,8,0"
-                        Command="{Binding GitCloneCommand}" />
+                        Command="{Binding CloneCommand}" />
                 <Button Content="Pull"
                         Style="{StaticResource ActionButton}"
                         MinWidth="0"
                         Height="34"
                         FontSize="12"
                         Margin="0,0,8,0"
-                        Command="{Binding GitPullCommand}" />
+                        Command="{Binding PullCommand}" />
                 <Button Content="Push"
                         Style="{StaticResource ActionButton}"
                         MinWidth="0"
                         Height="34"
                         FontSize="12"
-                        Command="{Binding GitPushCommand}" />
+                        Command="{Binding PushCommand}" />
             </UniformGrid>
 
             <TextBlock Text="Clone 会检出到「检出根目录\项目名」，Pull / Push 直接作用于该目录。"

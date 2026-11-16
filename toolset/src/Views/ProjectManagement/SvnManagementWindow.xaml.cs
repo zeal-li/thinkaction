@@ -1,16 +1,17 @@
 using System.Windows;
+using ToolSet.ViewModels.ProjectManagement;
 
 namespace ToolSet.Views.ProjectManagement
 {
     /// <summary>
-    /// 项目卡片的「版本管理」弹窗（Svn 输入框后面那个）：集中放该项目的 svn 操作。
-    /// DataContext 是 <see cref="ToolSet.ViewModels.ProjectManagement.ProjectItemViewModel"/>，界面上直接绑它的命令。
+    /// 「Svn 版本管理」弹窗：界面只负责展示并转发命令，操作逻辑在 <see cref="SvnManagementViewModel"/> 里。
     /// </summary>
     public partial class SvnManagementWindow : Window
     {
-        public SvnManagementWindow()
+        public SvnManagementWindow(SvnManagementViewModel viewModel)
         {
             InitializeComponent();
+            DataContext = viewModel;
         }
     }
 }
