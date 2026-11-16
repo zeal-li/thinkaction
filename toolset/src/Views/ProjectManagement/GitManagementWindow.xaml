@@ -92,16 +92,6 @@
                         FontSize="12"
                         Command="{Binding PushCommand}" />
             </UniformGrid>
-
-            <!-- ===== 底部 ===== -->
-            <StackPanel Orientation="Horizontal"
-                        HorizontalAlignment="Right"
-                        Margin="0,14,0,0">
-                <Button Content="关闭"
-                        Style="{StaticResource ActionButton}"
-                        MinWidth="76"
-                        IsCancel="True" />
-            </StackPanel>
         </StackPanel>
     </Border>
 </Window>
