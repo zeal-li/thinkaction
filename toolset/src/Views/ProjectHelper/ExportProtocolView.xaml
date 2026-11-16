@@ -10,8 +10,6 @@
         <StackPanel>
             <TextBlock Text="{Binding Title}"
                        Style="{StaticResource CardTitleText}" />
-            <TextBlock Text="{Binding Description}"
-                       Style="{StaticResource CaptionText}" />
         </StackPanel>
     </Border>
 </UserControl>

@@ -10,8 +10,86 @@
         <StackPanel>
             <TextBlock Text="{Binding Title}"
                        Style="{StaticResource CardTitleText}" />
-            <TextBlock Text="{Binding Description}"
-                       Style="{StaticResource CaptionText}" />
+
+            <Border Height="1"
+                    Background="{StaticResource LineBrush}"
+                    Margin="0,0,0,12" />
+
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" MinWidth="96" />
+                    <ColumnDefinition Width="*" MaxWidth="420" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0"
+                           Text="前端导出格式"
+                           Style="{StaticResource FieldLabelText}" />
+                <TextBox Grid.Row="0"
+                         Grid.Column="1"
+                         Style="{StaticResource AppTextBox}"
+                         Text="{Binding FrontendExportFormat, UpdateSourceTrigger=PropertyChanged}" />
+
+                <TextBlock Grid.Row="1"
+                           Text="后端导出格式"
+                           Style="{StaticResource FieldLabelText}" />
+                <TextBox Grid.Row="1"
+                         Grid.Column="1"
+                         Style="{StaticResource AppTextBox}"
+                         Text="{Binding BackendExportFormat, UpdateSourceTrigger=PropertyChanged}" />
+
+                <TextBlock Grid.Row="2"
+                           Text="Excel配置目录"
+                           Style="{StaticResource FieldLabelText}" />
+                <TextBox Grid.Row="2"
+                         Grid.Column="1"
+                         Style="{StaticResource AppTextBox}"
+                         Text="{Binding ExcelConfigDir, UpdateSourceTrigger=PropertyChanged}" />
+                <Button Grid.Row="2"
+                        Grid.Column="2"
+                        Content="浏览"
+                        Style="{StaticResource ActionButton}"
+                        MinWidth="64"
+                        Margin="8,0,0,8"
+                        Command="{Binding BrowseExcelConfigDirCommand}" />
+
+                <TextBlock Grid.Row="3"
+                           Text="前端生成目录"
+                           Style="{StaticResource FieldLabelText}" />
+                <TextBox Grid.Row="3"
+                         Grid.Column="1"
+                         Style="{StaticResource AppTextBox}"
+                         Text="{Binding FrontendOutputDir, UpdateSourceTrigger=PropertyChanged}" />
+                <Button Grid.Row="3"
+                        Grid.Column="2"
+                        Content="浏览"
+                        Style="{StaticResource ActionButton}"
+                        MinWidth="64"
+                        Margin="8,0,0,8"
+                        Command="{Binding BrowseFrontendOutputDirCommand}" />
+
+                <TextBlock Grid.Row="4"
+                           Text="后端生成目录"
+                           Style="{StaticResource FieldLabelText}" />
+                <TextBox Grid.Row="4"
+                         Grid.Column="1"
+                         Style="{StaticResource AppTextBox}"
+                         Text="{Binding BackendOutputDir, UpdateSourceTrigger=PropertyChanged}" />
+                <Button Grid.Row="4"
+                        Grid.Column="2"
+                        Content="浏览"
+                        Style="{StaticResource ActionButton}"
+                        MinWidth="64"
+                        Margin="8,0,0,8"
+                        Command="{Binding BrowseBackendOutputDirCommand}" />
+            </Grid>
         </StackPanel>
     </Border>
 </UserControl>

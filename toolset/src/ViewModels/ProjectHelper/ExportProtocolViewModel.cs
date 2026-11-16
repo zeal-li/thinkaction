@@ -8,7 +8,5 @@ namespace ToolSet.ViewModels.ProjectHelper
     public sealed class ExportProtocolViewModel : ViewModelBase
     {
         public string Title => "协议导出";
-
-        public string Description => "导出项目协议文件的入口，具体功能待补充。";
     }
 }
