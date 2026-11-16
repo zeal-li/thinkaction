@@ -1,4 +1,8 @@
+using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.IO;
+using System.Linq;
 using System.Windows.Input;
 using Microsoft.Win32;
 using ToolSet.Infrastructure;
@@ -30,6 +34,7 @@ namespace ToolSet.ViewModels.ProjectHelper
         private string _excelConfigDir = string.Empty;
         private string _frontendOutputDir = string.Empty;
         private string _backendOutputDir = string.Empty;
+        private string? _selectedExcelConfigFile;
         private bool _hasPendingChanges;
         private bool _isLoading;
 
@@ -64,6 +69,16 @@ namespace ToolSet.ViewModels.ProjectHelper
         }
 
         public string Title => "配置导出";
+
+        /// <summary>Excel 配置目录下找到的配置文件（仅文件名），作为下拉框选项。</summary>
+        public ObservableCollection<string> ExcelConfigFiles { get; } = new ObservableCollection<string>();
+
+        /// <summary>下拉框里当前选中的配置文件。</summary>
+        public string? SelectedExcelConfigFile
+        {
+            get => _selectedExcelConfigFile;
+            set => SetProperty(ref _selectedExcelConfigFile, value);
+        }
 
         public ICommand CancelEditCommand { get; }
 
@@ -117,6 +132,7 @@ namespace ToolSet.ViewModels.ProjectHelper
                 if (SetProperty(ref _excelConfigDir, value))
                 {
                     RefreshPendingChanges();
+                    RefreshExcelConfigFiles();
                 }
             }
         }
@@ -181,6 +197,23 @@ namespace ToolSet.ViewModels.ProjectHelper
         private void BrowseFrontendOutputDir() => FrontendOutputDir = BrowseFolder("选择前端生成目录", FrontendOutputDir);
 
         private void BrowseBackendOutputDir() => BackendOutputDir = BrowseFolder("选择后端生成目录", BackendOutputDir);
+
+        /// <summary>列出 Excel 配置目录下的所有文件（按文件名排序）。</summary>
+        private void RefreshExcelConfigFiles()
+        {
+            ExcelConfigFiles.Clear();
+
+            if (!Directory.Exists(ExcelConfigDir))
+            {
+                return;
+            }
+
+            foreach (var file in Directory.GetFiles(ExcelConfigDir)
+                                       .OrderBy(file => Path.GetFileName(file), StringComparer.OrdinalIgnoreCase))
+            {
+                ExcelConfigFiles.Add(Path.GetFileName(file));
+            }
+        }
 
         /// <summary>弹出目录选择框，确认后返回所选目录，取消则返回原值。</summary>
         private static string BrowseFolder(string title, string currentDir)

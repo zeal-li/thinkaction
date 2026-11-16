@@ -53,6 +53,7 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
                 <TextBlock Grid.Row="0"
@@ -99,6 +100,16 @@
                         MinWidth="64"
                         Margin="8,0,0,8"
                         Command="{Binding BrowseBackendOutputDirCommand}" />
+
+                <TextBlock Grid.Row="3"
+                           Text="配置文件"
+                           Style="{StaticResource FieldLabelText}" />
+                <ComboBox Grid.Row="3"
+                          Grid.Column="1"
+                          Style="{StaticResource AppComboBox}"
+                          Margin="0,0,0,8"
+                          ItemsSource="{Binding ExcelConfigFiles}"
+                          SelectedItem="{Binding SelectedExcelConfigFile}" />
             </Grid>
 
             <StackPanel Orientation="Horizontal"
