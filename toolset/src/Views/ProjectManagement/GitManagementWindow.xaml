@@ -93,11 +93,6 @@
                         Command="{Binding PushCommand}" />
             </UniformGrid>
 
-            <TextBlock Text="Clone 会检出到「检出根目录\项目名」，Pull / Push 直接作用于该目录。"
-                       Style="{StaticResource CaptionText}"
-                       TextWrapping="Wrap"
-                       Margin="0,8,0,0" />
-
             <!-- ===== 底部 ===== -->
             <StackPanel Orientation="Horizontal"
                         HorizontalAlignment="Right"
