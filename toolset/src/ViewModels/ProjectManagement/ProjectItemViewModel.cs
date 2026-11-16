@@ -55,6 +55,11 @@ namespace ToolSet.ViewModels.ProjectManagement
             GitCloneCommand = new RelayCommand(GitClone);
             GitPullCommand = new RelayCommand(GitPull);
             GitPushCommand = new RelayCommand(GitPush);
+            SvnCheckoutCommand = new RelayCommand(SvnCheckout);
+            SvnUpdateCommand = new RelayCommand(SvnUpdate);
+            SvnCommitCommand = new RelayCommand(SvnCommit);
+            SvnCleanupCommand = new RelayCommand(SvnCleanup);
+            SvnShowLogCommand = new RelayCommand(SvnShowLog);
 
             LoadFromConfig();
         }
@@ -80,6 +85,21 @@ namespace ToolSet.ViewModels.ProjectManagement
 
         /// <summary>对「检出根目录/项目名」执行 git push。</summary>
         public ICommand GitPushCommand { get; }
+
+        /// <summary>在「检出根目录」下检出「项目名」目录，地址取当前填写的 Svn。</summary>
+        public ICommand SvnCheckoutCommand { get; }
+
+        /// <summary>对「检出根目录/项目名」执行 svn update。</summary>
+        public ICommand SvnUpdateCommand { get; }
+
+        /// <summary>对「检出根目录/项目名」执行 svn commit。</summary>
+        public ICommand SvnCommitCommand { get; }
+
+        /// <summary>对「检出根目录/项目名」执行 svn cleanup。</summary>
+        public ICommand SvnCleanupCommand { get; }
+
+        /// <summary>查看「检出根目录/项目名」的 svn 日志。</summary>
+        public ICommand SvnShowLogCommand { get; }
 
         /// <summary>输入框内容与配置不一致时为 true，用于显示「取消 / 确认」按钮。</summary>
         public bool HasPendingChanges
@@ -182,6 +202,28 @@ namespace ToolSet.ViewModels.ProjectManagement
                 CheckoutRootDir,
                 Name,
                 Github);
+
+        private void SvnCheckout() => RunSvn("checkout");
+
+        private void SvnUpdate() => RunSvn("update");
+
+        private void SvnCommit() => RunSvn("commit");
+
+        private void SvnCleanup() => RunSvn("cleanup");
+
+        private void SvnShowLog() => RunSvn("showlog");
+
+        /// <summary>
+        /// svn 操作统一走 scripts/svn_operate.bat（内部调用 TortoiseProc.exe 打开 TortoiseSVN 界面），
+        /// 参数按「功能 检出根目录 项目名 Svn地址」传，用的是输入框里的当前值。
+        /// </summary>
+        private void RunSvn(string action)
+            => AppScripts.Current.RunInConsole(
+                AppScripts.GetScriptPath("svn_operate.bat"),
+                action,
+                CheckoutRootDir,
+                Name,
+                Svn);
 
         private void MarkAsSaved()
         {
