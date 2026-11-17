@@ -20,17 +20,16 @@ namespace ToolSet.ViewModels.ProjectHelper
         /// <summary>本卡片的配置分组。</summary>
         public const string SectionPath = "项目辅助/配置导出";
 
-        private const string FrontendExportFormatKey = "前端导出格式";
-        private const string BackendExportFormatKey = "后端导出格式";
         private const string ExcelConfigDirKey = "Excel配置目录";
         private const string FrontendOutputDirKey = "前端生成目录";
         private const string BackendOutputDirKey = "后端生成目录";
 
+        /// <summary>下拉框中的「全部」选项，固定排在第一位。</summary>
+        public const string AllConfigFilesOption = "全部";
+
         private readonly IConfigService _config;
         private readonly Dictionary<string, string> _savedValues = new Dictionary<string, string>();
 
-        private string _frontendExportFormat = string.Empty;
-        private string _backendExportFormat = string.Empty;
         private string _excelConfigDir = string.Empty;
         private string _frontendOutputDir = string.Empty;
         private string _backendOutputDir = string.Empty;
@@ -51,8 +50,6 @@ namespace ToolSet.ViewModels.ProjectHelper
             {
                 _config.SetValues(SectionPath, new Dictionary<string, string>
                 {
-                    [FrontendExportFormatKey] = string.Empty,
-                    [BackendExportFormatKey] = string.Empty,
                     [ExcelConfigDirKey] = string.Empty,
                     [FrontendOutputDirKey] = string.Empty,
                     [BackendOutputDirKey] = string.Empty,
@@ -95,32 +92,6 @@ namespace ToolSet.ViewModels.ProjectHelper
         {
             get => _hasPendingChanges;
             private set => SetProperty(ref _hasPendingChanges, value);
-        }
-
-        /// <summary>前端导出格式。</summary>
-        public string FrontendExportFormat
-        {
-            get => _frontendExportFormat;
-            set
-            {
-                if (SetProperty(ref _frontendExportFormat, value))
-                {
-                    RefreshPendingChanges();
-                }
-            }
-        }
-
-        /// <summary>后端导出格式。</summary>
-        public string BackendExportFormat
-        {
-            get => _backendExportFormat;
-            set
-            {
-                if (SetProperty(ref _backendExportFormat, value))
-                {
-                    RefreshPendingChanges();
-                }
-            }
         }
 
         /// <summary>Excel 配置目录。</summary>
@@ -166,8 +137,6 @@ namespace ToolSet.ViewModels.ProjectHelper
         private void LoadFromConfig()
         {
             _isLoading = true;
-            FrontendExportFormat = _config.Get(PathOf(FrontendExportFormatKey));
-            BackendExportFormat = _config.Get(PathOf(BackendExportFormatKey));
             ExcelConfigDir = _config.Get(PathOf(ExcelConfigDirKey));
             FrontendOutputDir = _config.Get(PathOf(FrontendOutputDirKey));
             BackendOutputDir = _config.Get(PathOf(BackendOutputDirKey));
@@ -182,8 +151,6 @@ namespace ToolSet.ViewModels.ProjectHelper
         {
             _config.SetValues(SectionPath, new Dictionary<string, string>
             {
-                [FrontendExportFormatKey] = FrontendExportFormat,
-                [BackendExportFormatKey] = BackendExportFormat,
                 [ExcelConfigDirKey] = ExcelConfigDir,
                 [FrontendOutputDirKey] = FrontendOutputDir,
                 [BackendOutputDirKey] = BackendOutputDir,
@@ -202,6 +169,7 @@ namespace ToolSet.ViewModels.ProjectHelper
         private void RefreshExcelConfigFiles()
         {
             ExcelConfigFiles.Clear();
+            ExcelConfigFiles.Add(AllConfigFilesOption);
 
             if (!Directory.Exists(ExcelConfigDir))
             {
@@ -229,8 +197,6 @@ namespace ToolSet.ViewModels.ProjectHelper
 
         private void MarkAsSaved()
         {
-            _savedValues[FrontendExportFormatKey] = FrontendExportFormat;
-            _savedValues[BackendExportFormatKey] = BackendExportFormat;
             _savedValues[ExcelConfigDirKey] = ExcelConfigDir;
             _savedValues[FrontendOutputDirKey] = FrontendOutputDir;
             _savedValues[BackendOutputDirKey] = BackendOutputDir;
@@ -246,9 +212,7 @@ namespace ToolSet.ViewModels.ProjectHelper
             }
 
             HasPendingChanges =
-                FrontendExportFormat != _savedValues[FrontendExportFormatKey]
-                || BackendExportFormat != _savedValues[BackendExportFormatKey]
-                || ExcelConfigDir != _savedValues[ExcelConfigDirKey]
+                ExcelConfigDir != _savedValues[ExcelConfigDirKey]
                 || FrontendOutputDir != _savedValues[FrontendOutputDirKey]
                 || BackendOutputDir != _savedValues[BackendOutputDirKey];
         }
