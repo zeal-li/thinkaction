@@ -31,6 +31,13 @@ if not exist "!proto_dir!\lua.exe" (
     exit /b 1
 )
 
+::lua.exe 是动态链接版，启动需要同目录的 lua55.dll（可从 server\skynet\3rd\lua\win64 复制）
+if not exist "!proto_dir!\lua55.dll" (
+    echo [错误] 未找到 !proto_dir!\lua55.dll
+    echo   lua.exe 依赖 lua55.dll 才能启动，请把它复制到 proto 协议目录
+    exit /b 1
+)
+
 if not exist "!proto_dir!\generate_sproto.lua" (
     echo [错误] 未找到 !proto_dir!\generate_sproto.lua
     exit /b 1
