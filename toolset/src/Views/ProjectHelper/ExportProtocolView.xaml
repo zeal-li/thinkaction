@@ -3,6 +3,10 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              FontSize="13">
 
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
+    </UserControl.Resources>
+
     <!-- 「协议导出」卡片 -->
     <Border Style="{StaticResource SectionCard}"
             HorizontalAlignment="Stretch"
@@ -10,6 +14,100 @@
         <StackPanel>
             <TextBlock Text="{Binding Title}"
                        Style="{StaticResource CardTitleText}" />
+
+            <Border Height="1"
+                    Background="{StaticResource LineBrush}"
+                    Margin="0,0,0,12" />
+
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" MinWidth="96" />
+                    <ColumnDefinition Width="*" MaxWidth="420" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0"
+                           Text="proto协议目录"
+                           Style="{StaticResource FieldLabelText}" />
+                <TextBox Grid.Row="0"
+                         Grid.Column="1"
+                         Style="{StaticResource AppTextBox}"
+                         Text="{Binding ProtoDir, UpdateSourceTrigger=PropertyChanged}" />
+                <Button Grid.Row="0"
+                        Grid.Column="2"
+                        Content="浏览"
+                        Style="{StaticResource ActionButton}"
+                        MinWidth="64"
+                        Margin="8,0,0,8"
+                        Command="{Binding BrowseProtoDirCommand}" />
+
+                <TextBlock Grid.Row="1"
+                           Text="前端生成目录"
+                           Style="{StaticResource FieldLabelText}" />
+                <TextBox Grid.Row="1"
+                         Grid.Column="1"
+                         Style="{StaticResource AppTextBox}"
+                         Text="{Binding FrontendOutputDir, UpdateSourceTrigger=PropertyChanged}" />
+                <Button Grid.Row="1"
+                        Grid.Column="2"
+                        Content="浏览"
+                        Style="{StaticResource ActionButton}"
+                        MinWidth="64"
+                        Margin="8,0,0,8"
+                        Command="{Binding BrowseFrontendOutputDirCommand}" />
+
+                <TextBlock Grid.Row="2"
+                           Text="后端生成目录"
+                           Style="{StaticResource FieldLabelText}" />
+                <TextBox Grid.Row="2"
+                         Grid.Column="1"
+                         Style="{StaticResource AppTextBox}"
+                         Text="{Binding BackendOutputDir, UpdateSourceTrigger=PropertyChanged}" />
+                <Button Grid.Row="2"
+                        Grid.Column="2"
+                        Content="浏览"
+                        Style="{StaticResource ActionButton}"
+                        MinWidth="64"
+                        Margin="8,0,0,8"
+                        Command="{Binding BrowseBackendOutputDirCommand}" />
+            </Grid>
+
+            <!-- 生成按钮（功能待定） -->
+            <StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Left"
+                        Margin="96,2,0,0">
+                <Button Content="生成前端协议"
+                        Style="{StaticResource ActionButton}"
+                        MinWidth="96"
+                        Padding="10,0"
+                        Command="{Binding GenerateFrontendProtocolCommand}" />
+                <Button Content="生成后端协议"
+                        Style="{StaticResource ActionButton}"
+                        MinWidth="96"
+                        Padding="10,0"
+                        Margin="8,0,0,0"
+                        Command="{Binding GenerateBackendProtocolCommand}" />
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Right"
+                        Margin="0,10,0,0"
+                        Visibility="{Binding HasPendingChanges, Converter={StaticResource BoolToVisibility}}">
+                <Button Content="取消"
+                        Style="{StaticResource ActionButton}"
+                        MinWidth="76"
+                        Margin="0,0,8,0"
+                        Command="{Binding CancelEditCommand}" />
+                <Button Content="确认"
+                        Style="{StaticResource ActionButton}"
+                        MinWidth="76"
+                        Command="{Binding ConfirmEditCommand}" />
+            </StackPanel>
         </StackPanel>
     </Border>
 </UserControl>
