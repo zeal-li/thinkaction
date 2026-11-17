@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Windows;
 using System.Windows.Input;
 using Microsoft.Win32;
@@ -140,18 +141,19 @@ namespace ToolSet.ViewModels.EnvironmentDeploy
 
         private void CancelEdit() => LoadFromConfig();
 
-        private void BrowseUserKey()
+        private void BrowseUserKey() => UserKey = BrowseFile("选择密钥文件", UserKey);
+
+        /// <summary>弹出文件选择框，从当前文件所在目录打开，取消则返回原值。</summary>
+        private static string BrowseFile(string title, string currentFile)
         {
             var dialog = new OpenFileDialog
             {
-                Title = "选择密钥文件",
+                Title = title,
                 Filter = "所有文件 (*.*)|*.*",
+                InitialDirectory = Path.GetDirectoryName(currentFile) ?? string.Empty,
             };
 
-            if (dialog.ShowDialog() == true)
-            {
-                UserKey = dialog.FileName;
-            }
+            return dialog.ShowDialog() == true ? dialog.FileName : currentFile;
         }
 
         /// <summary>新开控制台窗口执行对应脚本的 whoami，连接信息由脚本自己读 config.json。</summary>

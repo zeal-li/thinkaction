@@ -149,17 +149,18 @@ namespace ToolSet.ViewModels.ProjectManagement
             MarkAsSaved();
         }
 
-        private void BrowseCheckoutRootDir()
+        private void BrowseCheckoutRootDir() => CheckoutRootDir = BrowseFolder("选择检出根目录", CheckoutRootDir);
+
+        /// <summary>弹出目录选择框，确认后返回所选目录，取消则返回原值。</summary>
+        private static string BrowseFolder(string title, string currentDir)
         {
             var dialog = new OpenFolderDialog
             {
-                Title = "选择检出根目录",
+                Title = title,
+                InitialDirectory = currentDir,
             };
 
-            if (dialog.ShowDialog() == true)
-            {
-                CheckoutRootDir = dialog.FolderName;
-            }
+            return dialog.ShowDialog() == true ? dialog.FolderName : currentDir;
         }
 
         /// <summary>把卡片当前填写的项目信息交给弹窗自己的 ViewModel，弹窗不反过来依赖卡片。</summary>

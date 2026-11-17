@@ -204,17 +204,18 @@ namespace ToolSet.ViewModels.EnvironmentDeploy
             MarkAsSaved();
         }
 
-        private void BrowseDirPath()
+        private void BrowseDirPath() => DirPath = BrowseFolder("选择 MySQL 目录", DirPath);
+
+        /// <summary>弹出目录选择框，确认后返回所选目录，取消则返回原值。</summary>
+        private static string BrowseFolder(string title, string currentDir)
         {
             var dialog = new OpenFolderDialog
             {
-                Title = "选择 MySQL 目录",
+                Title = title,
+                InitialDirectory = currentDir,
             };
 
-            if (dialog.ShowDialog() == true)
-            {
-                DirPath = dialog.FolderName;
-            }
+            return dialog.ShowDialog() == true ? dialog.FolderName : currentDir;
         }
 
         private void ConfigureService() => RunMysqlAction("config");
