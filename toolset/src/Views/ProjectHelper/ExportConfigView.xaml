@@ -77,7 +77,7 @@
                         Command="{Binding BrowseBackendOutputDirCommand}" />
             </Grid>
 
-            <!-- 配置文件下拉框 + 导出范围按钮（按钮功能待定） -->
+            <!-- 配置文件下拉框 + 导出按钮（调用 scripts/export_config.bat） -->
             <Grid Margin="0,2,0,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" MinWidth="96" />
@@ -99,12 +99,14 @@
                     <Button Content="前端"
                             Style="{StaticResource ActionButton}"
                             MinWidth="56"
-                            Padding="10,0" />
+                            Padding="10,0"
+                            Command="{Binding ExportFrontendCommand}" />
                     <Button Content="后端"
                             Style="{StaticResource ActionButton}"
                             MinWidth="56"
                             Padding="10,0"
-                            Margin="6,0,0,0" />
+                            Margin="6,0,0,0"
+                            Command="{Binding ExportBackendCommand}" />
                 </StackPanel>
             </Grid>
 
