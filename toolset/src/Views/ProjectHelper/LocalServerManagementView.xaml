@@ -1,0 +1,43 @@
+<UserControl x:Class="ToolSet.Views.ProjectHelper.LocalServerManagementView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             FontSize="13">
+
+    <!-- 「本地服管理」卡片 -->
+    <Border Style="{StaticResource SectionCard}"
+            HorizontalAlignment="Stretch"
+            Margin="0,0,0,12">
+        <StackPanel>
+            <TextBlock Text="{Binding Title}"
+                       Style="{StaticResource CardTitleText}" />
+
+            <Border Height="1"
+                    Background="{StaticResource LineBrush}"
+                    Margin="0,0,0,12" />
+
+            <!-- 操作按钮 -->
+            <StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Left">
+                <Button Content="开服"
+                        Style="{StaticResource ActionButton}"
+                        MinWidth="76"
+                        Command="{Binding StartServerCommand}" />
+                <Button Content="关服"
+                        Style="{StaticResource ActionButton}"
+                        MinWidth="76"
+                        Margin="8,0,0,0"
+                        Command="{Binding StopServerCommand}" />
+                <Button Content="查看"
+                        Style="{StaticResource ActionButton}"
+                        MinWidth="76"
+                        Margin="8,0,0,0"
+                        Command="{Binding ViewCommand}" />
+                <Button Content="发布"
+                        Style="{StaticResource ActionButton}"
+                        MinWidth="76"
+                        Margin="8,0,0,0"
+                        Command="{Binding PublishCommand}" />
+            </StackPanel>
+        </StackPanel>
+    </Border>
+</UserControl>

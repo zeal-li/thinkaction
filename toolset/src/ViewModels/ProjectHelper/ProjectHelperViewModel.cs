@@ -10,10 +10,13 @@ namespace ToolSet.ViewModels.ProjectHelper
         {
         }
 
+        /// <summary>「配置导出」卡片。</summary>
+        public ExportConfigViewModel ConfigExport { get; } = new ExportConfigViewModel();
+
         /// <summary>「协议导出」卡片。</summary>
         public ExportProtocolViewModel ProtocolExport { get; } = new ExportProtocolViewModel();
 
-        /// <summary>「配置导出」卡片。</summary>
-        public ExportConfigViewModel ConfigExport { get; } = new ExportConfigViewModel();
+        /// <summary>「本地服管理」卡片（功能待定）。</summary>
+        public LocalServerManagementViewModel LocalServerManagement { get; } = new LocalServerManagementViewModel();
     }
 }

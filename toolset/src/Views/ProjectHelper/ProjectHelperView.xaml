@@ -8,11 +8,14 @@
                   HorizontalScrollBarVisibility="Disabled">
         <StackPanel>
 
+            <!-- ===== 配置导出 ===== -->
+            <viewsHelper:ExportConfigView DataContext="{Binding ConfigExport}" />
+
             <!-- ===== 协议导出 ===== -->
             <viewsHelper:ExportProtocolView DataContext="{Binding ProtocolExport}" />
 
-            <!-- ===== 配置导出 ===== -->
-            <viewsHelper:ExportConfigView DataContext="{Binding ConfigExport}" />
+            <!-- ===== 本地服管理 ===== -->
+            <viewsHelper:LocalServerManagementView DataContext="{Binding LocalServerManagement}" />
 
         </StackPanel>
     </ScrollViewer>
