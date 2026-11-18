@@ -5,8 +5,11 @@ namespace ToolSet.ViewModels.ProjectHelper
     /// </summary>
     public sealed class ProjectHelperViewModel : ModuleViewModelBase
     {
+        /// <summary>本模块的配置分组，各卡片再按项目名分组。</summary>
+        public const string SectionName = "项目辅助";
+
         public ProjectHelperViewModel()
-            : base("项目辅助")
+            : base(SectionName)
         {
         }
 
@@ -18,5 +21,16 @@ namespace ToolSet.ViewModels.ProjectHelper
 
         /// <summary>「本地服管理」卡片（功能待定）。</summary>
         public LocalServerManagementViewModel LocalServerManagement { get; } = new LocalServerManagementViewModel();
+
+        /// <summary>
+        /// 顶部选中项目变化后，让各卡片按新项目的配置重新加载。
+        /// 各卡片的配置都挂在「项目辅助/{项目名}」下，互不干扰。
+        /// </summary>
+        public void ReloadForCurrentProject()
+        {
+            ConfigExport.ReloadForCurrentProject();
+            ProtocolExport.ReloadForCurrentProject();
+            LocalServerManagement.ReloadForCurrentProject();
+        }
     }
 }

@@ -8,13 +8,13 @@ namespace ToolSet.ViewModels.ProjectHelper
 {
     /// <summary>
     /// 「本地服管理」卡片：本地服配置、数据库操作和服务器操作的入口。
-    /// 服配置持久化在 config/config.json 的「项目辅助/本地服管理」分组下，
+    /// 服配置持久化在 config/config.json 的「项目辅助/{项目名}/本地服管理」分组下，
     /// 修改后可取消（恢复为配置值）或确认（写回配置）。
     /// </summary>
     public sealed class LocalServerManagementViewModel : ViewModelBase
     {
-        /// <summary>本卡片的配置分组。</summary>
-        public const string SectionPath = "项目辅助/本地服管理";
+        /// <summary>本卡片在项目分组下的名称。</summary>
+        private const string CardSection = "本地服管理";
 
         private const string GameDatabaseKey = "游戏数据库";
         private const string LogDatabaseKey = "日志数据库";
@@ -58,17 +58,6 @@ namespace ToolSet.ViewModels.ProjectHelper
         public LocalServerManagementViewModel(IConfigService config)
         {
             _config = config;
-
-            if (!_config.Contains(SectionPath))
-            {
-                _config.SetValues(SectionPath, new Dictionary<string, string>
-                {
-                    [GameDatabaseKey] = string.Empty,
-                    [LogDatabaseKey] = string.Empty,
-                    [GameBasePortKey] = string.Empty,
-                    [LogServerPortKey] = string.Empty,
-                });
-            }
 
             foreach (var server in PublicServerOptions)
             {
@@ -230,13 +219,16 @@ namespace ToolSet.ViewModels.ProjectHelper
         /// <summary>游戏服查看（功能待定）。</summary>
         public ICommand ViewGameServerCommand { get; }
 
+        /// <summary>顶部切换项目后，按新项目的配置重新加载（未确认的修改丢弃）。</summary>
+        public void ReloadForCurrentProject() => LoadFromConfig();
+
         private void LoadFromConfig()
         {
             _isLoading = true;
-            GameDatabase = _config.Get(PathOf(GameDatabaseKey));
-            LogDatabase = _config.Get(PathOf(LogDatabaseKey));
-            GameBasePort = _config.Get(PathOf(GameBasePortKey));
-            LogServerPort = _config.Get(PathOf(LogServerPortKey));
+            GameDatabase = ReadValue(GameDatabaseKey);
+            LogDatabase = ReadValue(LogDatabaseKey);
+            GameBasePort = ReadValue(GameBasePortKey);
+            LogServerPort = ReadValue(LogServerPortKey);
             _isLoading = false;
 
             MarkAsSaved();
@@ -246,13 +238,16 @@ namespace ToolSet.ViewModels.ProjectHelper
 
         private void ConfirmEdit()
         {
-            _config.SetValues(SectionPath, new Dictionary<string, string>
+            if (SectionPath is string section)
             {
-                [GameDatabaseKey] = GameDatabase,
-                [LogDatabaseKey] = LogDatabase,
-                [GameBasePortKey] = GameBasePort,
-                [LogServerPortKey] = LogServerPort,
-            });
+                _config.SetValues(section, new Dictionary<string, string>
+                {
+                    [GameDatabaseKey] = GameDatabase,
+                    [LogDatabaseKey] = LogDatabase,
+                    [GameBasePortKey] = GameBasePort,
+                    [LogServerPortKey] = LogServerPort,
+                });
+            }
 
             MarkAsSaved();
         }
@@ -281,7 +276,19 @@ namespace ToolSet.ViewModels.ProjectHelper
                 || LogServerPort != _savedValues[LogServerPortKey];
         }
 
-        private static string PathOf(string key) => $"{SectionPath}/{key}";
+        /// <summary>顶部当前选中的项目名，没有选中项目时为空串。</summary>
+        private string CurrentProjectName =>
+            _config.Get($"{MainViewModel.MainSection}/{MainViewModel.CurrentSelectProjectKey}");
+
+        /// <summary>本卡片按项目隔离的配置分组，如「项目辅助/stock/本地服管理」；没有选中项目时为 null。</summary>
+        private string? SectionPath =>
+            string.IsNullOrEmpty(CurrentProjectName)
+                ? null
+                : $"{ProjectHelperViewModel.SectionName}/{CurrentProjectName}/{CardSection}";
+
+        /// <summary>读取本卡片的配置值，没有选中项目时返回空串。</summary>
+        private string ReadValue(string key)
+            => SectionPath is string section ? _config.Get($"{section}/{key}") : string.Empty;
 
         private void Query()
         {

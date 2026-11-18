@@ -9,13 +9,13 @@ namespace ToolSet.ViewModels.ProjectHelper
 {
     /// <summary>
     /// 「协议导出」卡片：导出项目的协议文件。
-    /// 配置持久化在 config/config.json 的「项目辅助/协议导出」分组下，
+    /// 配置持久化在 config/config.json 的「项目辅助/{项目名}/协议导出」分组下，
     /// 修改后可取消（恢复为配置值）或确认（写回配置）。
     /// </summary>
     public sealed class ExportProtocolViewModel : ViewModelBase
     {
-        /// <summary>本卡片的配置分组。</summary>
-        public const string SectionPath = "项目辅助/协议导出";
+        /// <summary>本卡片在项目分组下的名称。</summary>
+        private const string CardSection = "协议导出";
 
         private const string ProtoDirKey = "proto协议目录";
         private const string FrontendOutputDirKey = "前端生成目录";
@@ -49,16 +49,6 @@ namespace ToolSet.ViewModels.ProjectHelper
         {
             _config = config;
             _scripts = scripts;
-
-            if (!_config.Contains(SectionPath))
-            {
-                _config.SetValues(SectionPath, new Dictionary<string, string>
-                {
-                    [ProtoDirKey] = string.Empty,
-                    [FrontendOutputDirKey] = string.Empty,
-                    [BackendOutputDirKey] = string.Empty,
-                });
-            }
 
             CancelEditCommand = new RelayCommand(CancelEdit);
             ConfirmEditCommand = new RelayCommand(ConfirmEdit);
@@ -135,12 +125,15 @@ namespace ToolSet.ViewModels.ProjectHelper
             }
         }
 
+        /// <summary>顶部切换项目后，按新项目的配置重新加载（未确认的修改丢弃）。</summary>
+        public void ReloadForCurrentProject() => LoadFromConfig();
+
         private void LoadFromConfig()
         {
             _isLoading = true;
-            ProtoDir = _config.Get(PathOf(ProtoDirKey));
-            FrontendOutputDir = _config.Get(PathOf(FrontendOutputDirKey));
-            BackendOutputDir = _config.Get(PathOf(BackendOutputDirKey));
+            ProtoDir = ReadValue(ProtoDirKey);
+            FrontendOutputDir = ReadValue(FrontendOutputDirKey);
+            BackendOutputDir = ReadValue(BackendOutputDirKey);
             _isLoading = false;
 
             MarkAsSaved();
@@ -150,12 +143,15 @@ namespace ToolSet.ViewModels.ProjectHelper
 
         private void ConfirmEdit()
         {
-            _config.SetValues(SectionPath, new Dictionary<string, string>
+            if (SectionPath is string section)
             {
-                [ProtoDirKey] = ProtoDir,
-                [FrontendOutputDirKey] = FrontendOutputDir,
-                [BackendOutputDirKey] = BackendOutputDir,
-            });
+                _config.SetValues(section, new Dictionary<string, string>
+                {
+                    [ProtoDirKey] = ProtoDir,
+                    [FrontendOutputDirKey] = FrontendOutputDir,
+                    [BackendOutputDirKey] = BackendOutputDir,
+                });
+            }
 
             MarkAsSaved();
         }
@@ -218,6 +214,18 @@ namespace ToolSet.ViewModels.ProjectHelper
                 || BackendOutputDir != _savedValues[BackendOutputDirKey];
         }
 
-        private static string PathOf(string key) => $"{SectionPath}/{key}";
+        /// <summary>顶部当前选中的项目名，没有选中项目时为空串。</summary>
+        private string CurrentProjectName =>
+            _config.Get($"{MainViewModel.MainSection}/{MainViewModel.CurrentSelectProjectKey}");
+
+        /// <summary>本卡片按项目隔离的配置分组，如「项目辅助/stock/协议导出」；没有选中项目时为 null。</summary>
+        private string? SectionPath =>
+            string.IsNullOrEmpty(CurrentProjectName)
+                ? null
+                : $"{ProjectHelperViewModel.SectionName}/{CurrentProjectName}/{CardSection}";
+
+        /// <summary>读取本卡片的配置值，没有选中项目时返回空串。</summary>
+        private string ReadValue(string key)
+            => SectionPath is string section ? _config.Get($"{section}/{key}") : string.Empty;
     }
 }

@@ -24,6 +24,7 @@ namespace ToolSet.ViewModels
         private static string CurrentSelectProjectPath => $"{MainSection}/{CurrentSelectProjectKey}";
 
         private readonly ProjectManagementViewModel _projectManagement;
+        private readonly ProjectHelperViewModel _projectHelper;
         private readonly RelayCommand _openGitManagementCommand;
         private readonly RelayCommand _openSvnManagementCommand;
         private ModuleViewModelBase _selectedModule = null!;
@@ -45,11 +46,13 @@ namespace ToolSet.ViewModels
             // 项目增删后刷新顶部下拉框，并保持 current_select_project 始终有效
             _projectManagement.Projects.CollectionChanged += (_, _) => SynchronizeProjects();
 
+            _projectHelper = new ProjectHelperViewModel();
+
             Modules = new ObservableCollection<ModuleViewModelBase>
             {
                 new EnvironmentDeployViewModel(),
                 _projectManagement,
-                new ProjectHelperViewModel(),
+                _projectHelper,
             };
 
             foreach (var module in Modules)
@@ -97,6 +100,7 @@ namespace ToolSet.ViewModels
                 if (!_isSynchronizingProjects)
                 {
                     Config.Set(CurrentSelectProjectPath, value ?? string.Empty);
+                    _projectHelper.ReloadForCurrentProject();
                 }
 
                 RaiseVersionCommandStates();
@@ -213,6 +217,9 @@ namespace ToolSet.ViewModels
             {
                 Config.Set(CurrentSelectProjectPath, resolved);
             }
+
+            // 启动或项目增删后落定的项目，也要让「项目辅助」各卡片按它重新加载
+            _projectHelper.ReloadForCurrentProject();
         }
     }
 }
