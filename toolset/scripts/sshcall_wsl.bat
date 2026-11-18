@@ -1,16 +1,18 @@
 @echo off
 setlocal enabledelayedexpansion
 
-:::统一切到 936 代码页，保证本脚本（GBK）里的中文能正确传给 PowerShell 解析 JSON
+::::统一切到 936 代码页，保证本脚本（GBK）里的中文能正确传给 PowerShell 解析 JSON
 chcp 936 >nul
 
-:::参数: ssh_commond 要执行的命令
+::::参数: ssh_commond 要执行的命令；%~2 传 -t 时给远端分配终端（远端 sudo 要输密码时必须带，否则报 no tty present）
 set "ssh_commond=%~1"
+set "ssh_tty="
+if /i "%~2"=="-t" set "ssh_tty=-t"
 
-:::从 exe 同级的 config/config.json 读取 WSL 连接配置
+::::从 exe 同级的 config/config.json 读取 WSL 连接配置
 set "config_path=%~dp0..\config\config.json"
 
-:::解析用的临时文件放在脚本同级的 tmp 目录，用前清理、用完删除
+::::解析用的临时文件放在脚本同级的 tmp 目录，用前清理、用完删除
 set "config_tmp=%~dp0tmp\sshcall_wsl_config_tmp.txt"
 if not exist "%~dp0tmp" mkdir "%~dp0tmp"
 if exist "%config_tmp%" del /q "%config_tmp%" >nul 2>nul
@@ -31,7 +33,7 @@ for /f "usebackq tokens=1,* delims==" %%a in ("%config_tmp%") do (
 )
 del /q "%config_tmp%" >nul 2>nul
 
-:::连接配置检查
+::::连接配置检查
 if "!ssh_host!"=="" (
     echo [错误] 未配置 hostname，请在界面「环境部署 / WSL_SSH_配置」填写并点确认
     exit /b 1
@@ -49,19 +51,19 @@ if "!ssh_key!"=="" (
     exit /b 1
 )
 
-:::命令检查
+::::命令检查
 if "!ssh_commond!"=="" (
     echo [错误] 未指定要执行的命令
-    echo 用法: %~nx0 "命令"
+    echo 用法: %~nx0 "命令" [-t]
     exit /b 1
 )
 
-:::执行ssh命令
-echo "[开始执行ssh命令] ssh -i !ssh_key! !ssh_user!@!ssh_host! -p !ssh_port! !ssh_commond!"
-ssh -i "!ssh_key!" !ssh_user!@!ssh_host! -p !ssh_port! !ssh_commond!
+::::执行ssh命令
+echo "[开始执行ssh命令] ssh -i !ssh_key! !ssh_tty! !ssh_user!@!ssh_host! -p !ssh_port! !ssh_commond!"
+ssh -i "!ssh_key!" !ssh_tty! !ssh_user!@!ssh_host! -p !ssh_port! !ssh_commond!
 set "ssh_result=!errorlevel!"
 
-:::ssh 退出后可能把控制台代码页切成 65001，切回来，否则后面的中文提示会乱码
+::::ssh 退出后可能把控制台代码页切成 65001，切回来，否则后面的中文提示会乱码
 chcp 936 >nul
 
 echo "[ssh命令执行完成] 退出码:!ssh_result!"
