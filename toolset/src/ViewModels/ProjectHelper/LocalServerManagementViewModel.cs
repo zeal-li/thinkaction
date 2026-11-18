@@ -1,8 +1,11 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Windows.Input;
 using ToolSet.Infrastructure;
 using ToolSet.Infrastructure.Configuration;
+using ToolSet.Infrastructure.Scripts;
+using ToolSet.ViewModels.ProjectManagement;
 
 namespace ToolSet.ViewModels.ProjectHelper
 {
@@ -15,6 +18,9 @@ namespace ToolSet.ViewModels.ProjectHelper
     {
         /// <summary>本卡片在项目分组下的名称。</summary>
         private const string CardSection = "本地服管理";
+
+        /// <summary>服务器操作用的脚本文件名，位于 exe 同级 scripts 目录。</summary>
+        private const string ServerScriptFileName = "local_server_operate.bat";
 
         private const string GameDatabaseKey = "游戏数据库";
         private const string LogDatabaseKey = "日志数据库";
@@ -39,6 +45,7 @@ namespace ToolSet.ViewModels.ProjectHelper
         };
 
         private readonly IConfigService _config;
+        private readonly IScriptExecutor _scripts;
         private readonly Dictionary<string, string> _savedValues = new Dictionary<string, string>();
 
         private string _gameDatabase = string.Empty;
@@ -51,13 +58,14 @@ namespace ToolSet.ViewModels.ProjectHelper
         private bool _isLoading;
 
         public LocalServerManagementViewModel()
-            : this(AppConfig.Current)
+            : this(AppConfig.Current, AppScripts.Current)
         {
         }
 
-        public LocalServerManagementViewModel(IConfigService config)
+        public LocalServerManagementViewModel(IConfigService config, IScriptExecutor scripts)
         {
             _config = config;
+            _scripts = scripts;
 
             foreach (var server in PublicServerOptions)
             {
@@ -198,7 +206,7 @@ namespace ToolSet.ViewModels.ProjectHelper
         /// <summary>导入（功能待定）。</summary>
         public ICommand ImportCommand { get; }
 
-        /// <summary>发布（功能待定）。</summary>
+        /// <summary>发布：在 WSL 里执行 ./server_tool.sh -o release。</summary>
         public ICommand PublishCommand { get; }
 
         /// <summary>公共服开服（功能待定）。</summary>
@@ -318,8 +326,24 @@ namespace ToolSet.ViewModels.ProjectHelper
         {
         }
 
+        /// <summary>发布：调 scripts/local_server_operate.bat，登录 WSL 进入「项目目录\server\skynet」执行 ./server_tool.sh -o release。</summary>
         private void Publish()
+            => _scripts.RunInConsole(
+                AppScripts.GetScriptPath(ServerScriptFileName),
+                "publish",
+                CurrentProjectDir);
+
+        /// <summary>当前选中项目的「检出根目录\项目名」，脚本到它下面的 server\skynet 找 server_tool.sh。</summary>
+        private string CurrentProjectDir
         {
+            get
+            {
+                var projectName = CurrentProjectName;
+                var checkoutRootDir = _config.Get(
+                    $"{ProjectItemViewModel.ProjectsSection}/{projectName}/{ProjectItemViewModel.CheckoutRootDirKey}");
+
+                return Path.Combine(checkoutRootDir, projectName);
+            }
         }
 
         private void StartPublicServer()
