@@ -1,49 +1,341 @@
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Windows.Input;
 using ToolSet.Infrastructure;
+using ToolSet.Infrastructure.Configuration;
 
 namespace ToolSet.ViewModels.ProjectHelper
 {
     /// <summary>
-    /// 「本地服管理」卡片：本地服相关操作的入口。
-    /// 功能待定，当前只提供按钮外壳。
+    /// 「本地服管理」卡片：本地服配置、数据库操作和服务器操作的入口。
+    /// 服配置持久化在 config/config.json 的「项目辅助/本地服管理」分组下，
+    /// 修改后可取消（恢复为配置值）或确认（写回配置）。
     /// </summary>
     public sealed class LocalServerManagementViewModel : ViewModelBase
     {
-        public LocalServerManagementViewModel()
+        /// <summary>本卡片的配置分组。</summary>
+        public const string SectionPath = "项目辅助/本地服管理";
+
+        private const string GameDatabaseKey = "游戏数据库";
+        private const string LogDatabaseKey = "日志数据库";
+        private const string GameBasePortKey = "游戏基准端口";
+        private const string LogServerPortKey = "日志服端口";
+
+        /// <summary>公共服下拉框的固定选项，顺序即界面展示顺序。</summary>
+        private static readonly string[] PublicServerOptions =
         {
-            StartServerCommand = new RelayCommand(StartServer);
-            StopServerCommand = new RelayCommand(StopServer);
-            ViewCommand = new RelayCommand(View);
+            "allserver",
+            "logserver",
+        };
+
+        /// <summary>游戏服下拉框的固定选项，顺序即界面展示顺序。</summary>
+        private static readonly string[] GameServerOptions =
+        {
+            "allserver",
+            "dbserver",
+            "loginserver",
+            "gameserver",
+            "gateserver",
+        };
+
+        private readonly IConfigService _config;
+        private readonly Dictionary<string, string> _savedValues = new Dictionary<string, string>();
+
+        private string _gameDatabase = string.Empty;
+        private string _logDatabase = string.Empty;
+        private string _gameBasePort = string.Empty;
+        private string _logServerPort = string.Empty;
+        private string? _selectedPublicServer;
+        private string? _selectedGameServer;
+        private bool _hasPendingChanges;
+        private bool _isLoading;
+
+        public LocalServerManagementViewModel()
+            : this(AppConfig.Current)
+        {
+        }
+
+        public LocalServerManagementViewModel(IConfigService config)
+        {
+            _config = config;
+
+            if (!_config.Contains(SectionPath))
+            {
+                _config.SetValues(SectionPath, new Dictionary<string, string>
+                {
+                    [GameDatabaseKey] = string.Empty,
+                    [LogDatabaseKey] = string.Empty,
+                    [GameBasePortKey] = string.Empty,
+                    [LogServerPortKey] = string.Empty,
+                });
+            }
+
+            foreach (var server in PublicServerOptions)
+            {
+                PublicServers.Add(server);
+            }
+
+            foreach (var server in GameServerOptions)
+            {
+                GameServers.Add(server);
+            }
+
+            SelectedPublicServer = PublicServerOptions[0];
+            SelectedGameServer = GameServerOptions[0];
+
+            CancelEditCommand = new RelayCommand(CancelEdit);
+            ConfirmEditCommand = new RelayCommand(ConfirmEdit);
+            QueryCommand = new RelayCommand(Query);
+            CreateDatabaseCommand = new RelayCommand(CreateDatabase);
+            DropDatabaseCommand = new RelayCommand(DropDatabase);
+            ClearDataCommand = new RelayCommand(ClearData);
+            UpdateCommand = new RelayCommand(Update);
+            ExportCommand = new RelayCommand(Export);
+            ImportCommand = new RelayCommand(Import);
             PublishCommand = new RelayCommand(Publish);
+            StartPublicServerCommand = new RelayCommand(StartPublicServer);
+            StopPublicServerCommand = new RelayCommand(StopPublicServer);
+            ViewPublicServerCommand = new RelayCommand(ViewPublicServer);
+            StartGameServerCommand = new RelayCommand(StartGameServer);
+            StopGameServerCommand = new RelayCommand(StopGameServer);
+            ViewGameServerCommand = new RelayCommand(ViewGameServer);
+
+            LoadFromConfig();
         }
 
         public string Title => "本地服管理";
 
-        /// <summary>开服（功能待定）。</summary>
-        public ICommand StartServerCommand { get; }
+        public ICommand CancelEditCommand { get; }
 
-        /// <summary>关服（功能待定）。</summary>
-        public ICommand StopServerCommand { get; }
+        public ICommand ConfirmEditCommand { get; }
 
-        /// <summary>查看（功能待定）。</summary>
-        public ICommand ViewCommand { get; }
+        /// <summary>输入框内容与配置不一致时为 true，用于显示「取消 / 确认」按钮。</summary>
+        public bool HasPendingChanges
+        {
+            get => _hasPendingChanges;
+            private set => SetProperty(ref _hasPendingChanges, value);
+        }
+
+        /// <summary>游戏数据库名。</summary>
+        public string GameDatabase
+        {
+            get => _gameDatabase;
+            set
+            {
+                if (SetProperty(ref _gameDatabase, value))
+                {
+                    RefreshPendingChanges();
+                }
+            }
+        }
+
+        /// <summary>日志数据库名。</summary>
+        public string LogDatabase
+        {
+            get => _logDatabase;
+            set
+            {
+                if (SetProperty(ref _logDatabase, value))
+                {
+                    RefreshPendingChanges();
+                }
+            }
+        }
+
+        /// <summary>游戏基准端口。</summary>
+        public string GameBasePort
+        {
+            get => _gameBasePort;
+            set
+            {
+                if (SetProperty(ref _gameBasePort, value))
+                {
+                    RefreshPendingChanges();
+                }
+            }
+        }
+
+        /// <summary>日志服端口。</summary>
+        public string LogServerPort
+        {
+            get => _logServerPort;
+            set
+            {
+                if (SetProperty(ref _logServerPort, value))
+                {
+                    RefreshPendingChanges();
+                }
+            }
+        }
+
+        /// <summary>公共服下拉框的选项。</summary>
+        public ObservableCollection<string> PublicServers { get; } = new ObservableCollection<string>();
+
+        /// <summary>游戏服下拉框的选项。</summary>
+        public ObservableCollection<string> GameServers { get; } = new ObservableCollection<string>();
+
+        /// <summary>公共服下拉框里当前选中的服务器。</summary>
+        public string? SelectedPublicServer
+        {
+            get => _selectedPublicServer;
+            set => SetProperty(ref _selectedPublicServer, value);
+        }
+
+        /// <summary>游戏服下拉框里当前选中的服务器。</summary>
+        public string? SelectedGameServer
+        {
+            get => _selectedGameServer;
+            set => SetProperty(ref _selectedGameServer, value);
+        }
+
+        /// <summary>查询（功能待定）。</summary>
+        public ICommand QueryCommand { get; }
+
+        /// <summary>创建（功能待定）。</summary>
+        public ICommand CreateDatabaseCommand { get; }
+
+        /// <summary>删除（功能待定）。</summary>
+        public ICommand DropDatabaseCommand { get; }
+
+        /// <summary>清档（功能待定）。</summary>
+        public ICommand ClearDataCommand { get; }
+
+        /// <summary>更新（功能待定）。</summary>
+        public ICommand UpdateCommand { get; }
+
+        /// <summary>导出（功能待定）。</summary>
+        public ICommand ExportCommand { get; }
+
+        /// <summary>导入（功能待定）。</summary>
+        public ICommand ImportCommand { get; }
 
         /// <summary>发布（功能待定）。</summary>
         public ICommand PublishCommand { get; }
 
-        private void StartServer()
+        /// <summary>公共服开服（功能待定）。</summary>
+        public ICommand StartPublicServerCommand { get; }
+
+        /// <summary>公共服关服（功能待定）。</summary>
+        public ICommand StopPublicServerCommand { get; }
+
+        /// <summary>公共服查看（功能待定）。</summary>
+        public ICommand ViewPublicServerCommand { get; }
+
+        /// <summary>游戏服开服（功能待定）。</summary>
+        public ICommand StartGameServerCommand { get; }
+
+        /// <summary>游戏服关服（功能待定）。</summary>
+        public ICommand StopGameServerCommand { get; }
+
+        /// <summary>游戏服查看（功能待定）。</summary>
+        public ICommand ViewGameServerCommand { get; }
+
+        private void LoadFromConfig()
+        {
+            _isLoading = true;
+            GameDatabase = _config.Get(PathOf(GameDatabaseKey));
+            LogDatabase = _config.Get(PathOf(LogDatabaseKey));
+            GameBasePort = _config.Get(PathOf(GameBasePortKey));
+            LogServerPort = _config.Get(PathOf(LogServerPortKey));
+            _isLoading = false;
+
+            MarkAsSaved();
+        }
+
+        private void CancelEdit() => LoadFromConfig();
+
+        private void ConfirmEdit()
+        {
+            _config.SetValues(SectionPath, new Dictionary<string, string>
+            {
+                [GameDatabaseKey] = GameDatabase,
+                [LogDatabaseKey] = LogDatabase,
+                [GameBasePortKey] = GameBasePort,
+                [LogServerPortKey] = LogServerPort,
+            });
+
+            MarkAsSaved();
+        }
+
+        private void MarkAsSaved()
+        {
+            _savedValues[GameDatabaseKey] = GameDatabase;
+            _savedValues[LogDatabaseKey] = LogDatabase;
+            _savedValues[GameBasePortKey] = GameBasePort;
+            _savedValues[LogServerPortKey] = LogServerPort;
+
+            HasPendingChanges = false;
+        }
+
+        private void RefreshPendingChanges()
+        {
+            if (_isLoading)
+            {
+                return;
+            }
+
+            HasPendingChanges =
+                GameDatabase != _savedValues[GameDatabaseKey]
+                || LogDatabase != _savedValues[LogDatabaseKey]
+                || GameBasePort != _savedValues[GameBasePortKey]
+                || LogServerPort != _savedValues[LogServerPortKey];
+        }
+
+        private static string PathOf(string key) => $"{SectionPath}/{key}";
+
+        private void Query()
         {
         }
 
-        private void StopServer()
+        private void CreateDatabase()
         {
         }
 
-        private void View()
+        private void DropDatabase()
+        {
+        }
+
+        private void ClearData()
+        {
+        }
+
+        private void Update()
+        {
+        }
+
+        private void Export()
+        {
+        }
+
+        private void Import()
         {
         }
 
         private void Publish()
+        {
+        }
+
+        private void StartPublicServer()
+        {
+        }
+
+        private void StopPublicServer()
+        {
+        }
+
+        private void ViewPublicServer()
+        {
+        }
+
+        private void StartGameServer()
+        {
+        }
+
+        private void StopGameServer()
+        {
+        }
+
+        private void ViewGameServer()
         {
         }
     }

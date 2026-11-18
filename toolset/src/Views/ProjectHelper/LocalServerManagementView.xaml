@@ -3,6 +3,10 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              FontSize="13">
 
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
+    </UserControl.Resources>
+
     <!-- 「本地服管理」卡片 -->
     <Border Style="{StaticResource SectionCard}"
             HorizontalAlignment="Stretch"
@@ -15,28 +19,212 @@
                     Background="{StaticResource LineBrush}"
                     Margin="0,0,0,12" />
 
-            <!-- 操作按钮 -->
+            <!-- 服配置 -->
+            <TextBlock Text="服配置"
+                       Style="{StaticResource SectionTitleText}" />
+            <Grid Margin="0,0,0,4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0"
+                           Grid.Column="0"
+                           Text="游戏数据库"
+                           Style="{StaticResource FieldLabelText}" />
+                <TextBox Grid.Row="0"
+                         Grid.Column="1"
+                         Width="160"
+                         Margin="0,0,20,8"
+                         Style="{StaticResource AppTextBox}"
+                         Text="{Binding GameDatabase, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBlock Grid.Row="0"
+                           Grid.Column="2"
+                           Text="日志数据库"
+                           Style="{StaticResource FieldLabelText}" />
+                <TextBox Grid.Row="0"
+                         Grid.Column="3"
+                         Width="160"
+                         Margin="0,0,0,8"
+                         Style="{StaticResource AppTextBox}"
+                         Text="{Binding LogDatabase, UpdateSourceTrigger=PropertyChanged}" />
+
+                <TextBlock Grid.Row="1"
+                           Grid.Column="0"
+                           Text="游戏基准端口"
+                           Style="{StaticResource FieldLabelText}" />
+                <TextBox Grid.Row="1"
+                         Grid.Column="1"
+                         Width="160"
+                         Margin="0,0,20,0"
+                         Style="{StaticResource AppTextBox}"
+                         Text="{Binding GameBasePort, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBlock Grid.Row="1"
+                           Grid.Column="2"
+                           Text="日志服端口"
+                           Style="{StaticResource FieldLabelText}" />
+                <TextBox Grid.Row="1"
+                         Grid.Column="3"
+                         Width="160"
+                         Style="{StaticResource AppTextBox}"
+                         Text="{Binding LogServerPort, UpdateSourceTrigger=PropertyChanged}" />
+            </Grid>
+
+            <Border Height="1"
+                    Background="{StaticResource LineBrush}"
+                    Margin="0,0,0,12" />
+
+            <!-- 数据库操作（功能待定） -->
+            <TextBlock Text="数据库"
+                       Style="{StaticResource SectionTitleText}" />
             <StackPanel Orientation="Horizontal"
-                        HorizontalAlignment="Left">
-                <Button Content="开服"
+                        Margin="0,0,0,10">
+                <Button Content="查询"
                         Style="{StaticResource ActionButton}"
-                        MinWidth="76"
-                        Command="{Binding StartServerCommand}" />
-                <Button Content="关服"
+                        MinWidth="64"
+                        Command="{Binding QueryCommand}" />
+                <Button Content="创建"
                         Style="{StaticResource ActionButton}"
-                        MinWidth="76"
+                        MinWidth="64"
                         Margin="8,0,0,0"
-                        Command="{Binding StopServerCommand}" />
-                <Button Content="查看"
+                        Command="{Binding CreateDatabaseCommand}" />
+                <Button Content="删除"
                         Style="{StaticResource ActionButton}"
-                        MinWidth="76"
+                        MinWidth="64"
                         Margin="8,0,0,0"
-                        Command="{Binding ViewCommand}" />
+                        Command="{Binding DropDatabaseCommand}" />
+                <Button Content="清档"
+                        Style="{StaticResource ActionButton}"
+                        MinWidth="64"
+                        Margin="8,0,0,0"
+                        Command="{Binding ClearDataCommand}" />
+                <Button Content="更新"
+                        Style="{StaticResource ActionButton}"
+                        MinWidth="64"
+                        Margin="8,0,0,0"
+                        Command="{Binding UpdateCommand}" />
+                <Button Content="导出"
+                        Style="{StaticResource ActionButton}"
+                        MinWidth="64"
+                        Margin="8,0,0,0"
+                        Command="{Binding ExportCommand}" />
+                <Button Content="导入"
+                        Style="{StaticResource ActionButton}"
+                        MinWidth="64"
+                        Margin="8,0,0,0"
+                        Command="{Binding ImportCommand}" />
+            </StackPanel>
+
+            <Border Height="1"
+                    Background="{StaticResource LineBrush}"
+                    Margin="0,0,0,12" />
+
+            <!-- 服务器（功能待定） -->
+            <StackPanel Orientation="Horizontal"
+                        Margin="0,0,0,8">
+                <TextBlock Text="服务器"
+                           Style="{StaticResource SectionTitleText}"
+                           Margin="2,0,12,0"
+                           VerticalAlignment="Center" />
                 <Button Content="发布"
                         Style="{StaticResource ActionButton}"
-                        MinWidth="76"
-                        Margin="8,0,0,0"
+                        MinWidth="64"
                         Command="{Binding PublishCommand}" />
+            </StackPanel>
+
+            <!-- 公共服 -->
+            <Grid Margin="0,0,0,8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Text="公共服"
+                           Style="{StaticResource FieldLabelText}"
+                           Margin="0,0,10,0"
+                           VerticalAlignment="Center" />
+                <ComboBox Grid.Column="1"
+                          Width="180"
+                          Style="{StaticResource AppComboBox}"
+                          ItemsSource="{Binding PublicServers}"
+                          SelectedItem="{Binding SelectedPublicServer}" />
+                <StackPanel Grid.Column="2"
+                            Orientation="Horizontal"
+                            Margin="8,0,0,0">
+                    <Button Content="开服"
+                            Style="{StaticResource ActionButton}"
+                            MinWidth="64"
+                            Command="{Binding StartPublicServerCommand}" />
+                    <Button Content="关服"
+                            Style="{StaticResource ActionButton}"
+                            MinWidth="64"
+                            Margin="8,0,0,0"
+                            Command="{Binding StopPublicServerCommand}" />
+                    <Button Content="查看"
+                            Style="{StaticResource ActionButton}"
+                            MinWidth="64"
+                            Margin="8,0,0,0"
+                            Command="{Binding ViewPublicServerCommand}" />
+                </StackPanel>
+            </Grid>
+
+            <!-- 游戏服 -->
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Text="游戏服"
+                           Style="{StaticResource FieldLabelText}"
+                           Margin="0,0,10,0"
+                           VerticalAlignment="Center" />
+                <ComboBox Grid.Column="1"
+                          Width="180"
+                          Style="{StaticResource AppComboBox}"
+                          ItemsSource="{Binding GameServers}"
+                          SelectedItem="{Binding SelectedGameServer}" />
+                <StackPanel Grid.Column="2"
+                            Orientation="Horizontal"
+                            Margin="8,0,0,0">
+                    <Button Content="开服"
+                            Style="{StaticResource ActionButton}"
+                            MinWidth="64"
+                            Command="{Binding StartGameServerCommand}" />
+                    <Button Content="关服"
+                            Style="{StaticResource ActionButton}"
+                            MinWidth="64"
+                            Margin="8,0,0,0"
+                            Command="{Binding StopGameServerCommand}" />
+                    <Button Content="查看"
+                            Style="{StaticResource ActionButton}"
+                            MinWidth="64"
+                            Margin="8,0,0,0"
+                            Command="{Binding ViewGameServerCommand}" />
+                </StackPanel>
+            </Grid>
+
+            <StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Right"
+                        Margin="0,10,0,0"
+                        Visibility="{Binding HasPendingChanges, Converter={StaticResource BoolToVisibility}}">
+                <Button Content="取消"
+                        Style="{StaticResource ActionButton}"
+                        MinWidth="76"
+                        Margin="0,0,8,0"
+                        Command="{Binding CancelEditCommand}" />
+                <Button Content="确认"
+                        Style="{StaticResource ActionButton}"
+                        MinWidth="76"
+                        Command="{Binding ConfirmEditCommand}" />
             </StackPanel>
         </StackPanel>
     </Border>
