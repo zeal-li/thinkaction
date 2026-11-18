@@ -56,9 +56,8 @@ set "wsl_skynet_dir=!wsl_path!"
 
 ::::命令交给 sshcall_wsl.bat 登录后执行；整体用双引号包住，命令里的两个与号不会被 cmd 当成命令分隔符
 ::::sudo 加在 server_tool.sh 前面，不能加在 cd 前面（cd 是 shell 内建命令，sudo 找不到它）
-::::第二个参数传 -t，让 ssh 给远端分配终端，否则 sudo 要输密码时报 no tty present
 set "ssh_commond=cd '!wsl_skynet_dir!' && sudo ./server_tool.sh -o release"
-call "%~dp0sshcall_wsl.bat" "!ssh_commond!" -t
+call "%~dp0sshcall_wsl.bat" "!ssh_commond!"
 exit /b !errorlevel!
 
 
