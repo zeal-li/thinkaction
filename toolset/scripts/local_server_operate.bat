@@ -135,11 +135,15 @@ call :operate_servers status
 exit /b !errorlevel!
 
 ::::------------------------------------------------------------
-::::公共接口：对服务器类型列表逐个执行 server_tool.sh 的 start / stop / status
+::::公共接口：开服 / 关服 / 查看用，命令一定带 -m / -n / -s
 ::::  入参: %~1 操作类型（start / stop / status）
-::::  依赖: !server_name! / !server_id! / !server_models!（类型列表用空格分隔）
+::::  server_tool.sh 参数: -m 服务器类型、-n 服务器名、-s 服务器ID
 ::::------------------------------------------------------------
 :operate_servers
+if "!project_dir!"=="" (
+    echo [错误] 未指定项目目录
+    exit /b 1
+)
 if "!server_name!"=="" (
     echo [错误] 未指定服务器名
     exit /b 1
@@ -153,27 +157,6 @@ if "!server_models!"=="" (
     exit /b 1
 )
 
-for %%m in (!server_models!) do (
-    echo "[操作] %~1 服务器类型: %%m"
-    call :run_server_tool %~1 %%m
-    if errorlevel 1 exit /b !errorlevel!
-)
-exit /b 0
-
-
-::::------------------------------------------------------------
-::::公共接口：登录 WSL 到「项目目录\server\skynet」用 sudo 执行 ./server_tool.sh
-::::  入参: %~1 -o 选项（build / rebuild / clean / release / start / stop / status）
-::::        %~2 可选，服务器类型；传了就把 -m / -n / -s 一起带上
-::::------------------------------------------------------------
-:run_server_tool
-if "!project_dir!"=="" (
-    echo [错误] 未指定项目目录
-    exit /b 1
-)
-
-set "server_tool_opt=%~1"
-set "server_tool_model=%~2"
 set "skynet_dir=!project_dir!\server\skynet"
 if not exist "!skynet_dir!\server_tool.sh" (
     echo [错误] 未找到 server_tool.sh: !skynet_dir!\server_tool.sh
@@ -181,12 +164,36 @@ if not exist "!skynet_dir!\server_tool.sh" (
 )
 
 call :to_wsl_path "!skynet_dir!"
-set "wsl_skynet_dir=!wsl_path!"
+
+for %%m in (!server_models!) do (
+    echo "[操作] %~1 服务器类型: %%m"
+    set "ssh_commond=cd '!wsl_path!' && sudo ./server_tool.sh -o %~1 -m %%m -n !server_name! -s !server_id!"
+    call "%~dp0sshcall_wsl.bat" "!ssh_commond!"
+    if errorlevel 1 exit /b !errorlevel!
+)
+exit /b 0
+
+::::------------------------------------------------------------
+::::公共接口：编译 / 重编 / 清理 / 发布用，命令只发 -o 选项
+::::  入参: %~1 server_tool.sh 的 -o 选项（build / rebuild / clean / release）
+::::------------------------------------------------------------
+:run_server_tool
+if "!project_dir!"=="" (
+    echo [错误] 未指定项目目录
+    exit /b 1
+)
+
+set "skynet_dir=!project_dir!\server\skynet"
+if not exist "!skynet_dir!\server_tool.sh" (
+    echo [错误] 未找到 server_tool.sh: !skynet_dir!\server_tool.sh
+    exit /b 1
+)
+
+call :to_wsl_path "!skynet_dir!"
 
 ::::命令交给 sshcall_wsl.bat 登录后执行；整体用双引号包住，命令里的两个与号不会被 cmd 当成命令分隔符
 ::::sudo 加在 server_tool.sh 前面，不能加在 cd 前面（cd 是 shell 内建命令，sudo 找不到它）
-set "ssh_commond=cd '!wsl_skynet_dir!' && sudo ./server_tool.sh -o !server_tool_opt!"
-if not "!server_tool_model!"=="" set "ssh_commond=!ssh_commond! -m !server_tool_model! -n !server_name! -s !server_id!"
+set "ssh_commond=cd '!wsl_path!' && sudo ./server_tool.sh -o %~1"
 call "%~dp0sshcall_wsl.bat" "!ssh_commond!"
 exit /b !errorlevel!
 
