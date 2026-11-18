@@ -125,16 +125,31 @@
                     Background="{StaticResource LineBrush}"
                     Margin="0,0,0,12" />
 
-            <!-- 服务器（功能待定） -->
+            <!-- 服务器 -->
             <StackPanel Orientation="Horizontal"
                         Margin="0,0,0,8">
                 <TextBlock Text="服务器"
                            Style="{StaticResource SectionTitleText}"
                            Margin="2,0,12,0"
                            VerticalAlignment="Center" />
+                <Button Content="编译"
+                        Style="{StaticResource ActionButton}"
+                        MinWidth="64"
+                        Command="{Binding BuildCommand}" />
+                <Button Content="重编"
+                        Style="{StaticResource ActionButton}"
+                        MinWidth="64"
+                        Margin="8,0,0,0"
+                        Command="{Binding RebuildCommand}" />
+                <Button Content="清理"
+                        Style="{StaticResource ActionButton}"
+                        MinWidth="64"
+                        Margin="8,0,0,0"
+                        Command="{Binding CleanCommand}" />
                 <Button Content="发布"
                         Style="{StaticResource ActionButton}"
                         MinWidth="64"
+                        Margin="8,0,0,0"
                         Command="{Binding PublishCommand}" />
             </StackPanel>
 

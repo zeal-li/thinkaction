@@ -89,6 +89,9 @@ namespace ToolSet.ViewModels.ProjectHelper
             UpdateCommand = new RelayCommand(Update);
             ExportCommand = new RelayCommand(Export);
             ImportCommand = new RelayCommand(Import);
+            BuildCommand = new RelayCommand(Build);
+            RebuildCommand = new RelayCommand(Rebuild);
+            CleanCommand = new RelayCommand(Clean);
             PublishCommand = new RelayCommand(Publish);
             StartPublicServerCommand = new RelayCommand(StartPublicServer);
             StopPublicServerCommand = new RelayCommand(StopPublicServer);
@@ -206,7 +209,16 @@ namespace ToolSet.ViewModels.ProjectHelper
         /// <summary>导入（功能待定）。</summary>
         public ICommand ImportCommand { get; }
 
-        /// <summary>发布：在 WSL 里执行 ./server_tool.sh -o release。</summary>
+        /// <summary>编译：在 WSL 里执行 ./server_tool.sh -o build。</summary>
+        public ICommand BuildCommand { get; }
+
+        /// <summary>重编：在 WSL 里执行 ./server_tool.sh -o rebuild。</summary>
+        public ICommand RebuildCommand { get; }
+
+        /// <summary>清理：在 WSL 里执行 ./server_tool.sh -o clean。</summary>
+        public ICommand CleanCommand { get; }
+
+        /// <summary>发布：在 WSL 里执行 ./server_tool.sh -o release，成功后打开 Svn 提交界面。</summary>
         public ICommand PublishCommand { get; }
 
         /// <summary>公共服开服（功能待定）。</summary>
@@ -326,11 +338,23 @@ namespace ToolSet.ViewModels.ProjectHelper
         {
         }
 
-        /// <summary>发布：调 scripts/local_server_operate.bat，登录 WSL 进入「项目目录\server\skynet」执行 ./server_tool.sh -o release。</summary>
-        private void Publish()
+        private void Build() => RunServerTool("build");
+
+        private void Rebuild() => RunServerTool("rebuild");
+
+        private void Clean() => RunServerTool("clean");
+
+        private void Publish() => RunServerTool("publish");
+
+        /// <summary>
+        /// 服务器操作统一走 scripts/local_server_operate.bat：功能名就是脚本的动作名（build/rebuild/clean/publish），
+        /// 脚本登录 WSL 进入「项目目录\server\skynet」执行 sudo ./server_tool.sh -o &lt;build|rebuild|clean|release&gt;，
+        /// 其中 publish 成功后脚本自己打开 Svn 提交界面。
+        /// </summary>
+        private void RunServerTool(string action)
             => _scripts.RunInConsole(
                 AppScripts.GetScriptPath(ServerScriptFileName),
-                "publish",
+                action,
                 CurrentProjectDir);
 
         /// <summary>当前选中项目的「检出根目录\项目名」，脚本到它下面的 server\skynet 找 server_tool.sh。</summary>
