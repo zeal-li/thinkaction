@@ -32,6 +32,7 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
                 <TextBlock Grid.Row="0"
@@ -74,6 +75,29 @@
                          Width="160"
                          Style="{StaticResource AppTextBox}"
                          Text="{Binding LogServerPort, UpdateSourceTrigger=PropertyChanged}" />
+
+                <TextBlock Grid.Row="2"
+                           Grid.Column="0"
+                           Text="服务器名"
+                           Style="{StaticResource FieldLabelText}"
+                           Margin="0,8,0,0" />
+                <TextBox Grid.Row="2"
+                         Grid.Column="1"
+                         Width="160"
+                         Margin="0,8,20,0"
+                         Style="{StaticResource AppTextBox}"
+                         Text="{Binding ServerName, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBlock Grid.Row="2"
+                           Grid.Column="2"
+                           Text="服务器ID"
+                           Style="{StaticResource FieldLabelText}"
+                           Margin="0,8,0,0" />
+                <TextBox Grid.Row="2"
+                         Grid.Column="3"
+                         Width="160"
+                         Margin="0,8,0,0"
+                         Style="{StaticResource AppTextBox}"
+                         Text="{Binding ServerId, UpdateSourceTrigger=PropertyChanged}" />
             </Grid>
 
             <Border Height="1"

@@ -4,11 +4,17 @@ setlocal enabledelayedexpansion
 ::::统一切到 936 代码页，保证本脚本（GBK）里的中文正常显示
 chcp 936 >nul
 
-::::用法: local_server_operate.bat <功能名> <项目目录>
+::::用法: local_server_operate.bat <功能名> <项目目录> [服务器名] [服务器ID] [服务器类型列表]
 ::::功能名: build（编译）/ rebuild（重编）/ clean（清理）/ publish（发布）
+::::        start（开服）/ stop（关服）/ status（查看）
 ::::项目目录 = 检出根目录\项目名，由调用方传进来，脚本里不写死项目路径
+::::服务器名 / 服务器ID / 服务器类型只对 start / stop / status 有意义，对应 server_tool.sh 的 -n / -s / -m
+::::类型列表用空格分隔（如 dbserver loginserver gateway gameserver），allserver 由调用方展开好再传进来
 set "action=%~1"
 set "project_dir=%~2"
+set "server_name=%~3"
+set "server_id=%~4"
+set "server_models=%~5"
 
 if "!action!"=="" (
     call :print_usage
@@ -35,6 +41,21 @@ if /i "!action!"=="publish" (
     goto :finish
 )
 
+if /i "!action!"=="start" (
+    call :start_server
+    goto :finish
+)
+
+if /i "!action!"=="stop" (
+    call :stop_server
+    goto :finish
+)
+
+if /i "!action!"=="status" (
+    call :status_server
+    goto :finish
+)
+
 echo [错误] 未定义的功能: !action!
 call :print_usage
 exit /b 1
@@ -46,13 +67,15 @@ exit /b !errorlevel!
 ::::用法
 ::::------------------------------------------------------------
 :print_usage
-echo 用法: %~nx0 ^<功能名^> ^<项目目录^>
+echo 用法: %~nx0 ^<功能名^> ^<项目目录^> [服务器名] [服务器ID] [服务器类型列表]
 echo 可用功能:
 echo   build   - 编译：登录 WSL，进入「项目目录\server\skynet」用 sudo 执行 ./server_tool.sh -o build
-echo   rebuild - 重编：登录 WSL，进入「项目目录\server\skynet」用 sudo 执行 ./server_tool.sh -o rebuild
-echo   clean   - 清理：登录 WSL，进入「项目目录\server\skynet」用 sudo 执行 ./server_tool.sh -o clean
-echo   publish - 发布：登录 WSL，进入「项目目录\server\skynet」用 sudo 执行 ./server_tool.sh -o release，
-echo             发布成功后打开 TortoiseSVN 提交界面，提交「项目目录\common\release\ubuntu」
+echo   rebuild - 重编：同上，-o rebuild
+echo   clean   - 清理：同上，-o clean
+echo   publish - 发布：同上，-o release，发布成功后打开 TortoiseSVN 提交界面提交「项目目录\common\release\ubuntu」
+echo   start   - 开服：-o start -m 类型 -n 服务器名 -s 服务器ID，类型列表逐个执行
+echo   stop    - 关服：-o stop -m 类型 -n 服务器名 -s 服务器ID，类型列表逐个执行
+echo   status  - 查看：-o status -m 类型 -n 服务器名 -s 服务器ID，类型列表逐个执行
 exit /b 0
 
 ::::------------------------------------------------------------
@@ -91,9 +114,57 @@ call :open_svn_commit
 exit /b !errorlevel!
 
 ::::------------------------------------------------------------
-::::公共接口：登录 WSL 到「项目目录\server\skynet」用 sudo 执行 ./server_tool.sh -o <选项>
-::::  入参: %~1 server_tool.sh 的 -o 选项（build / rebuild / clean / release）
-::::  退出码: 就是 ssh 的退出码
+::::start：开服（服务器类型列表逐个开）
+::::------------------------------------------------------------
+:start_server
+call :operate_servers start
+exit /b !errorlevel!
+
+::::------------------------------------------------------------
+::::stop：关服（服务器类型列表逐个关）
+::::------------------------------------------------------------
+:stop_server
+call :operate_servers stop
+exit /b !errorlevel!
+
+::::------------------------------------------------------------
+::::status：查看（服务器类型列表逐个查）
+::::------------------------------------------------------------
+:status_server
+call :operate_servers status
+exit /b !errorlevel!
+
+::::------------------------------------------------------------
+::::公共接口：对服务器类型列表逐个执行 server_tool.sh 的 start / stop / status
+::::  入参: %~1 操作类型（start / stop / status）
+::::  依赖: !server_name! / !server_id! / !server_models!（类型列表用空格分隔）
+::::------------------------------------------------------------
+:operate_servers
+if "!server_name!"=="" (
+    echo [错误] 未指定服务器名
+    exit /b 1
+)
+if "!server_id!"=="" (
+    echo [错误] 未指定服务器ID
+    exit /b 1
+)
+if "!server_models!"=="" (
+    echo [错误] 未指定服务器类型
+    exit /b 1
+)
+
+for %%m in (!server_models!) do (
+    echo "[操作] %~1 服务器类型: %%m"
+    call :run_server_tool %~1 %%m
+    if errorlevel 1 exit /b !errorlevel!
+)
+exit /b 0
+
+
+::::------------------------------------------------------------
+::::公共接口：登录 WSL 到「项目目录\server\skynet」用 sudo 执行 ./server_tool.sh
+::::  入参: %~1 -o 选项（build / rebuild / clean / release / start / stop / status）
+::::        %~2 可选，服务器类型；传了就把 -m / -n / -s 一起带上
 ::::------------------------------------------------------------
 :run_server_tool
 if "!project_dir!"=="" (
@@ -102,6 +173,7 @@ if "!project_dir!"=="" (
 )
 
 set "server_tool_opt=%~1"
+set "server_tool_model=%~2"
 set "skynet_dir=!project_dir!\server\skynet"
 if not exist "!skynet_dir!\server_tool.sh" (
     echo [错误] 未找到 server_tool.sh: !skynet_dir!\server_tool.sh
@@ -114,6 +186,7 @@ set "wsl_skynet_dir=!wsl_path!"
 ::::命令交给 sshcall_wsl.bat 登录后执行；整体用双引号包住，命令里的两个与号不会被 cmd 当成命令分隔符
 ::::sudo 加在 server_tool.sh 前面，不能加在 cd 前面（cd 是 shell 内建命令，sudo 找不到它）
 set "ssh_commond=cd '!wsl_skynet_dir!' && sudo ./server_tool.sh -o !server_tool_opt!"
+if not "!server_tool_model!"=="" set "ssh_commond=!ssh_commond! -m !server_tool_model! -n !server_name! -s !server_id!"
 call "%~dp0sshcall_wsl.bat" "!ssh_commond!"
 exit /b !errorlevel!
 
