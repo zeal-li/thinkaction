@@ -32,7 +32,8 @@ exit /b !errorlevel!
 :print_usage
 echo 用法: %~nx0 ^<功能名^> ^<项目目录^>
 echo 可用功能:
-echo   publish - 发布：登录 WSL，进入「项目目录\server\skynet」用 sudo 执行 ./server_tool.sh -o release
+echo   publish - 发布：登录 WSL，进入「项目目录\server\skynet」用 sudo 执行 ./server_tool.sh -o release，
+echo             发布成功后打开 TortoiseSVN 提交界面，提交「项目目录\common\release\ubuntu」
 exit /b 0
 
 ::::------------------------------------------------------------
@@ -58,6 +59,13 @@ set "wsl_skynet_dir=!wsl_path!"
 ::::sudo 加在 server_tool.sh 前面，不能加在 cd 前面（cd 是 shell 内建命令，sudo 找不到它）
 set "ssh_commond=cd '!wsl_skynet_dir!' && sudo ./server_tool.sh -o release"
 call "%~dp0sshcall_wsl.bat" "!ssh_commond!"
+set "publish_result=!errorlevel!"
+if not "!publish_result!"=="0" (
+    echo [错误] 发布失败，退出码 !publish_result!，不打开Svn提交界面
+    exit /b !publish_result!
+)
+
+call :open_svn_commit
 exit /b !errorlevel!
 
 
@@ -86,4 +94,18 @@ for %%d in (a b c d e f g h i j k l m n o p q r s t u v w x y z) do (
 
 set "to_wsl_rest=!to_wsl_rest:\=/!"
 set "wsl_path=/mnt/!to_wsl_drive!!to_wsl_rest!"
+exit /b 0
+
+
+::::------------------------------------------------------------
+::::发布成功后打开 TortoiseSVN 提交界面，提交「项目目录\common\release\ubuntu」
+::::TortoiseProc.exe 优先用 PATH 里的，没有就按默认安装目录找（跟 svn_operate.bat 一致）
+::::------------------------------------------------------------
+:open_svn_commit
+set "release_dir=!project_dir!\common\release\ubuntu"
+set "tortoise_proc=TortoiseProc.exe"
+where TortoiseProc.exe >nul 2>nul || set "tortoise_proc=%ProgramFiles%\TortoiseSVN\bin\TortoiseProc.exe"
+
+echo "[提交] 打开 Svn 提交界面: !release_dir!"
+start "" "!tortoise_proc!" /command:commit /path:"!release_dir!" /closeonend:0
 exit /b 0
