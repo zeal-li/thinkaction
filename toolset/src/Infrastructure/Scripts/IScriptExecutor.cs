@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace ToolSet.Infrastructure.Scripts
 {
     /// <summary>
@@ -13,5 +15,14 @@ namespace ToolSet.Infrastructure.Scripts
         /// <param name="scriptPath">脚本路径，相对路径按当前工作目录解析。</param>
         /// <param name="arguments">依次传给脚本的参数，每个元素一个参数。</param>
         void RunInConsole(string scriptPath, params string[] arguments);
+
+        /// <summary>
+        /// 把同一个脚本的多次调用放进同一个控制台窗口串行执行：后一次等前一次退出后才开始，
+        /// 任意一次返回非 0 就中止后续调用；全部跑完后窗口等待按键才关闭。
+        /// 该进程同样挂在 kill-on-close 的 job 上。
+        /// </summary>
+        /// <param name="scriptPath">脚本路径，相对路径按当前工作目录解析。</param>
+        /// <param name="argumentSets">按顺序执行的每次调用的参数，每个元素是一次调用的参数表。</param>
+        void RunInConsoleSequential(string scriptPath, IEnumerable<string[]> argumentSets);
     }
 }

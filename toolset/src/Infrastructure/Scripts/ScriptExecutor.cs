@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
@@ -16,13 +17,37 @@ namespace ToolSet.Infrastructure.Scripts
 
         public void RunInConsole(string scriptPath, params string[] arguments)
         {
+            var commandLine = BuildCommandLine(Path.GetFullPath(scriptPath), arguments);
+            StartConsole($"{commandLine} & pause");
+        }
+
+        public void RunInConsoleSequential(string scriptPath, IEnumerable<string[]> argumentSets)
+        {
             var fullPath = Path.GetFullPath(scriptPath);
 
+            // 用 && 串起来：cmd 会等前一个进程退出再跑下一个，前一个返回非 0 就不跑后面的
+            var commandLine = new StringBuilder();
+            foreach (var arguments in argumentSets)
+            {
+                if (commandLine.Length > 0)
+                {
+                    commandLine.Append(" && ");
+                }
+
+                commandLine.Append(BuildCommandLine(fullPath, arguments));
+            }
+
+            StartConsole($"{commandLine} & pause");
+        }
+
+        /// <summary>起一个可见的控制台窗口跑整条命令行，不等待结束。</summary>
+        private static void StartConsole(string command)
+        {
             var process = Process.Start(new ProcessStartInfo
             {
                 FileName = "cmd.exe",
                 // 窗口保持可见,脚本跑完后 pause 停住,按键才关闭,方便看日志
-                Arguments = $"/d /s /c \"{BuildCommandLine(fullPath, arguments)} & pause\"",
+                Arguments = $"/d /s /c \"{command}\"",
                 // 窗口会长时间停留,工作目录用临时目录,避免把脚本目录锁住导致 build.bat 删不掉 build\scripts
                 WorkingDirectory = Path.GetTempPath(),
                 UseShellExecute = false,

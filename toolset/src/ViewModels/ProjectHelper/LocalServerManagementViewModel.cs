@@ -258,22 +258,22 @@ namespace ToolSet.ViewModels.ProjectHelper
         /// <summary>发布：在 WSL 里执行 ./server_tool.sh -o release，成功后打开 Svn 提交界面。</summary>
         public ICommand PublishCommand { get; }
 
-        /// <summary>公共服开服：对下拉框选中的服务器逐个执行 server_tool.sh -o start（选 allserver 时是除 allserver 外的全部）。</summary>
+        /// <summary>公共服开服：对下拉框选中的服务器逐个串行执行 server_tool.sh -o start（选 allserver 时是除 allserver 外的全部）。</summary>
         public ICommand StartPublicServerCommand { get; }
 
-        /// <summary>公共服关服：对下拉框选中的服务器逐个执行 server_tool.sh -o stop。</summary>
+        /// <summary>公共服关服：对下拉框选中的服务器逐个串行执行 server_tool.sh -o stop。</summary>
         public ICommand StopPublicServerCommand { get; }
 
-        /// <summary>公共服查看：对下拉框选中的服务器逐个执行 server_tool.sh -o status。</summary>
+        /// <summary>公共服查看：对下拉框选中的服务器逐个串行执行 server_tool.sh -o status。</summary>
         public ICommand ViewPublicServerCommand { get; }
 
-        /// <summary>游戏服开服：对下拉框选中的服务器逐个执行 server_tool.sh -o start。</summary>
+        /// <summary>游戏服开服：对下拉框选中的服务器逐个串行执行 server_tool.sh -o start。</summary>
         public ICommand StartGameServerCommand { get; }
 
-        /// <summary>游戏服关服：对下拉框选中的服务器逐个执行 server_tool.sh -o stop。</summary>
+        /// <summary>游戏服关服：对下拉框选中的服务器逐个串行执行 server_tool.sh -o stop。</summary>
         public ICommand StopGameServerCommand { get; }
 
-        /// <summary>游戏服查看：对下拉框选中的服务器逐个执行 server_tool.sh -o status。</summary>
+        /// <summary>游戏服查看：对下拉框选中的服务器逐个串行执行 server_tool.sh -o status。</summary>
         public ICommand ViewGameServerCommand { get; }
 
         /// <summary>顶部切换项目后，按新项目的配置重新加载（未确认的修改丢弃）。</summary>
@@ -402,11 +402,11 @@ namespace ToolSet.ViewModels.ProjectHelper
         private void RunServerTool(string action, string serverModel = "")
             => _scripts.RunInConsole(
                 AppScripts.GetScriptPath(ServerScriptFileName),
-                action,
-                CurrentProjectDir,
-                ServerName,
-                ServerId,
-                serverModel);
+                ServerToolArguments(action, serverModel));
+
+        /// <summary>一次脚本调用的参数：功能名、项目目录、服务器名、服务器ID、服务器类型。</summary>
+        private string[] ServerToolArguments(string action, string serverModel = "")
+            => new[] { action, CurrentProjectDir, ServerName, ServerId, serverModel };
 
         /// <summary>当前选中项目的「检出根目录\项目名」，脚本到它下面的 server\skynet 找 server_tool.sh。</summary>
         private string CurrentProjectDir
@@ -435,14 +435,17 @@ namespace ToolSet.ViewModels.ProjectHelper
 
         /// <summary>
         /// 对下拉框里选中的服务器逐个调用脚本：选的是 allserver 时按下拉框顺序展开成除 allserver 外的所有类型，
-        /// 每个类型单独调用一次 local_server_operate.bat（各弹一个窗口），脚本一次只处理一个类型。
+        /// 每个类型单独调用一次 local_server_operate.bat，同一个窗口里串行跑（后一个等前一个退出，前一个失败就中止）。
         /// </summary>
         private void RunServerToolEach(string action, IEnumerable<string> options, string? selected)
         {
+            var calls = new List<string[]>();
             foreach (var serverModel in SelectedServerModels(options, selected))
             {
-                RunServerTool(action, serverModel);
+                calls.Add(ServerToolArguments(action, serverModel));
             }
+
+            _scripts.RunInConsoleSequential(AppScripts.GetScriptPath(ServerScriptFileName), calls);
         }
 
         /// <summary>
