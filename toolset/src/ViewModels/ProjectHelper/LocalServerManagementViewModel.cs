@@ -393,8 +393,9 @@ namespace ToolSet.ViewModels.ProjectHelper
 
         /// <summary>
         /// 服务器操作统一走 scripts/local_server_operate.bat，功能名就是脚本的动作名：
-        /// 脚本登录 WSL 进入「项目目录\server\skynet」执行
-        /// sudo ./server_tool.sh -o &lt;build|rebuild|clean|release|start|stop|status&gt;，
+        /// build / rebuild / clean / publish 登录 WSL 进入「项目目录\server\skynet」，
+        /// start / stop / status 进入「项目目录\common\release\ubuntu」，
+        /// 执行 sudo ./server_tool.sh -o &lt;build|rebuild|clean|release|start|stop|status&gt;，
         /// 其中 publish 成功后脚本自己打开 Svn 提交界面。
         /// </summary>
         /// <param name="action">脚本功能名：build / rebuild / clean / publish / start / stop / status。</param>
@@ -408,7 +409,10 @@ namespace ToolSet.ViewModels.ProjectHelper
         private string[] ServerToolArguments(string action, string serverModel = "")
             => new[] { action, CurrentProjectDir, ServerName, ServerId, serverModel };
 
-        /// <summary>当前选中项目的「检出根目录\项目名」，脚本到它下面的 server\skynet 找 server_tool.sh。</summary>
+        /// <summary>
+        /// 当前选中项目的「检出根目录\项目名」，脚本到它下面的 server\skynet（编译/发布）
+        /// 或 common\release\ubuntu（开服/关服/查看）找 server_tool.sh。
+        /// </summary>
         private string CurrentProjectDir
         {
             get

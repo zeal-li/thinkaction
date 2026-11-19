@@ -73,16 +73,16 @@ echo   build   - 编译：登录 WSL，进入「项目目录\server\skynet」用 sudo 执行 ./se
 echo   rebuild - 重编：同上，-o rebuild
 echo   clean   - 清理：同上，-o clean
 echo   publish - 发布：同上，-o release，发布成功后打开 TortoiseSVN 提交界面提交「项目目录\common\release\ubuntu」
-echo   start   - 开服：-o start -m 类型 -n 服务器名 -s 服务器ID，一次只处理一个类型
-echo   stop    - 关服：-o stop -m 类型 -n 服务器名 -s 服务器ID，一次只处理一个类型
-echo   status  - 查看：-o status -m 类型 -n 服务器名 -s 服务器ID，一次只处理一个类型
+echo   start   - 开服：进入「项目目录\common\release\ubuntu」执行 -o start -m 类型 -n 服务器名 -s 服务器ID，一次处理一个类型
+echo   stop    - 关服：同上，-o stop
+echo   status  - 查看：同上，-o status
 exit /b 0
 
 ::::------------------------------------------------------------
 ::::build：编译
 ::::------------------------------------------------------------
 :build_project
-call :check_skynet_dir
+call :check_source_skynet_dir
 if errorlevel 1 exit /b 1
 
 call :to_wsl_path "!skynet_dir!"
@@ -95,7 +95,7 @@ exit /b !errorlevel!
 ::::rebuild：重编
 ::::------------------------------------------------------------
 :rebuild_project
-call :check_skynet_dir
+call :check_source_skynet_dir
 if errorlevel 1 exit /b 1
 
 call :to_wsl_path "!skynet_dir!"
@@ -108,7 +108,7 @@ exit /b !errorlevel!
 ::::clean：清理
 ::::------------------------------------------------------------
 :clean_project
-call :check_skynet_dir
+call :check_source_skynet_dir
 if errorlevel 1 exit /b 1
 
 call :to_wsl_path "!skynet_dir!"
@@ -121,7 +121,7 @@ exit /b !errorlevel!
 ::::publish：发布，成功后打开 Svn 提交界面提交「项目目录\common\release\ubuntu」
 ::::------------------------------------------------------------
 :publish_project
-call :check_skynet_dir
+call :check_source_skynet_dir
 if errorlevel 1 exit /b 1
 
 call :to_wsl_path "!skynet_dir!"
@@ -141,7 +141,7 @@ exit /b !errorlevel!
 ::::start：开服
 ::::------------------------------------------------------------
 :start_server
-call :check_skynet_dir
+call :check_release_skynet_dir
 if errorlevel 1 exit /b 1
 
 call :to_wsl_path "!skynet_dir!"
@@ -157,7 +157,7 @@ exit /b !errorlevel!
 ::::stop：关服
 ::::------------------------------------------------------------
 :stop_server
-call :check_skynet_dir
+call :check_release_skynet_dir
 if errorlevel 1 exit /b 1
 
 call :to_wsl_path "!skynet_dir!"
@@ -171,7 +171,7 @@ exit /b !errorlevel!
 ::::status：查看
 ::::------------------------------------------------------------
 :status_server
-call :check_skynet_dir
+call :check_release_skynet_dir
 if errorlevel 1 exit /b 1
 
 call :to_wsl_path "!skynet_dir!"
@@ -182,20 +182,43 @@ call "%~dp0sshcall_wsl.bat" "!ssh_commond!"
 exit /b !errorlevel!
 
 ::::------------------------------------------------------------
-::::公共接口：校验项目目录并定位 server_tool.sh 所在目录
+::::公共接口：校验项目目录并定位「源码」里的 server_tool.sh，build / rebuild / clean / publish 用
+::::  目标目录: !project_dir!\server\skynet
 ::::  入参: 无，直接读全局变量 project_dir（由调用方传入的第 2 个参数）
 ::::  出参: 变量 skynet_dir，如 C:\data\ikun_01_cn\server\skynet
 ::::  失败: 打印错误并 exit /b 1，调用方接 if errorlevel 1 exit /b 1
-::::  例:   call :check_skynet_dir
+::::  例:   call :check_source_skynet_dir
 ::::         if errorlevel 1 exit /b 1
 ::::------------------------------------------------------------
-:check_skynet_dir
+:check_source_skynet_dir
 if "!project_dir!"=="" (
     echo [错误] 未指定项目目录
     exit /b 1
 )
 
 set "skynet_dir=!project_dir!\server\skynet"
+if not exist "!skynet_dir!\server_tool.sh" (
+    echo [错误] 未找到 server_tool.sh: !skynet_dir!\server_tool.sh
+    exit /b 1
+)
+exit /b 0
+
+::::------------------------------------------------------------
+::::公共接口：校验项目目录并定位「发布」目录里的 server_tool.sh，start / stop / status 用
+::::  目标目录: !project_dir!\common\release\ubuntu
+::::  入参: 无，直接读全局变量 project_dir（由调用方传入的第 2 个参数）
+::::  出参: 变量 skynet_dir，如 C:\data\ikun_01_cn\common\release\ubuntu
+::::  失败: 打印错误并 exit /b 1，调用方接 if errorlevel 1 exit /b 1
+::::  例:   call :check_release_skynet_dir
+::::         if errorlevel 1 exit /b 1
+::::------------------------------------------------------------
+:check_release_skynet_dir
+if "!project_dir!"=="" (
+    echo [错误] 未指定项目目录
+    exit /b 1
+)
+
+set "skynet_dir=!project_dir!\common\release\ubuntu"
 if not exist "!skynet_dir!\server_tool.sh" (
     echo [错误] 未找到 server_tool.sh: !skynet_dir!\server_tool.sh
     exit /b 1
