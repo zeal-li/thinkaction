@@ -10,11 +10,25 @@ chcp 936 >nul
 ::::项目目录 = 检出根目录\项目名，由调用方传进来，脚本里不写死项目路径
 ::::服务器名 / 服务器ID / 服务器类型只对 start / stop / status 有意义，对应 server_tool.sh 的 -n / -s / -m
 ::::服务器类型一次只传一个（如 dbserver），选 allserver 时由调用方拆开逐个调用本脚本
+:::::------------------------------------------------------------
+:::::数据库操作：对本地 Windows MySQL 执行命令
+:::::  功能名: create（建库）/ delete（删库）/ clear（清档）/ update（更新）
+:::::  第3参数只传中间那段库名（如 lizexian），实际库名按类型拼: dbserver_<数据库名>_<服ID> / logserver_<数据库名>
+:::::  SQL 取「项目目录\common\sql」下的 <数据库类型>_table.sql（create）或 <数据库类型>_change.sql（update），clear 不需要 SQL 文件
+:::::  连接信息取 exe 同级 config\config.json 的「环境部署/Local_MySql_配置」（dirpath / hostname / port / username / password）
+:::::  例: local_server_operate.bat create C:\data\ikun_01_cn dbserver_game_1
+:::::------------------------------------------------------------
+
 set "action=%~1"
 set "project_dir=%~2"
 set "server_name=%~3"
 set "server_id=%~4"
 set "server_model=%~5"
+set "db_name=%~3"
+
+:::::数据库类型固定只有两种，create / delete / clear / update 执行时由玩家按序号选择
+set "db_type_array[1]=dbserver"
+set "db_type_array[2]=logserver"
 
 if "!action!"=="" (
     call :print_usage
@@ -56,6 +70,26 @@ if /i "!action!"=="status" (
     goto :finish
 )
 
+if /i "!action!"=="create" (
+    call :create_database
+    goto :finish
+)
+
+if /i "!action!"=="delete" (
+    call :delete_database
+    goto :finish
+)
+
+if /i "!action!"=="clear" (
+    call :clear_database
+    goto :finish
+)
+
+if /i "!action!"=="update" (
+    call :update_database
+    goto :finish
+)
+
 echo [错误] 未定义的功能: !action!
 call :print_usage
 exit /b 1
@@ -76,6 +110,15 @@ echo   publish - 发布：同上，-o release，发布成功后打开 TortoiseSVN 提交界面提交
 echo   start   - 开服：进入「项目目录\common\release\ubuntu」执行 -o start -m 类型 -n 服务器名 -s 服务器ID，一次处理一个类型
 echo   stop    - 关服：同上，-o stop
 echo   status  - 查看：同上，-o status
+echo.
+echo 数据库操作（本地 Windows MySQL，SQL 取 项目目录\common\sql）:
+echo   create  - 建库：建库「数据库名」，再导入 ^<数据库类型^>_table.sql
+echo   delete  - 删库：删除库「数据库名」
+echo   clear   - 清档：保留库和表结构，清空「数据库名」里所有表的数据（TRUNCATE TABLE，不需要 SQL 文件）
+echo   update  - 更新：导入 ^<数据库类型^>_change.sql
+echo 数据库操作用 第3参数=数据库名，数据库类型和服ID执行时输入（类型 1=logserver，2=dbserver）:
+echo 实际库名按类型拼: dbserver_^<数据库名^>_^<服ID^> / logserver_^<数据库名^>
+echo   %~nx0 create C:\data\ikun_01_cn dbserver_game_1
 exit /b 0
 
 ::::------------------------------------------------------------
@@ -265,3 +308,310 @@ where TortoiseProc.exe >nul 2>nul || set "tortoise_proc=%ProgramFiles%\TortoiseS
 echo "[提交] 打开 Svn 提交界面: !release_dir!"
 start "" "!tortoise_proc!" /command:commit /path:"!release_dir!" /closeonend:0
 exit /b 0
+
+
+:::::------------------------------------------------------------
+:::::create：建库，再导入「项目目录\common\sql\<数据库类型>_table.sql」
+:::::------------------------------------------------------------
+:create_database
+call :mysql_check_args
+if errorlevel 1 exit /b 1
+
+call :select_db_type
+call :select_server_id
+if errorlevel 1 exit /b 1
+
+call :compose_db_name
+
+set "mysql_sql_file=!project_dir!\common\sql\!db_type!_table.sql"
+if not exist "!mysql_sql_file!" (
+    echo [错误] 未找到 SQL 文件: !mysql_sql_file!
+    exit /b 1
+)
+
+call :mysql_database_exists
+if not errorlevel 1 (
+    echo [错误] 数据库已存在: !db_name!
+    exit /b 1
+)
+
+call :mysql_execute "CREATE DATABASE IF NOT EXISTS `!db_name!`;"
+if errorlevel 1 exit /b 1
+
+call :mysql_import "!mysql_sql_file!"
+exit /b !errorlevel!
+
+:::::------------------------------------------------------------
+:::::delete：删库
+:::::------------------------------------------------------------
+:delete_database
+call :mysql_check_args
+if errorlevel 1 exit /b 1
+
+call :select_db_type
+call :select_server_id
+if errorlevel 1 exit /b 1
+
+call :compose_db_name
+
+call :mysql_database_exists
+if errorlevel 1 (
+    echo [错误] 数据库不存在: !db_name!
+    exit /b 1
+)
+
+call :mysql_execute "DROP DATABASE IF EXISTS `!db_name!`;"
+exit /b !errorlevel!
+
+:::::------------------------------------------------------------
+:::::clear：清档，保留数据库和表结构，只清空库里所有表的数据（TRUNCATE TABLE，不需要 SQL 文件）
+:::::------------------------------------------------------------
+:clear_database
+call :mysql_check_args
+if errorlevel 1 exit /b 1
+
+call :select_db_type
+call :select_server_id
+if errorlevel 1 exit /b 1
+
+call :compose_db_name
+
+call :mysql_database_exists
+if errorlevel 1 (
+    echo [错误] 数据库不存在: !db_name!
+    exit /b 1
+)
+
+echo "[清档] 清空数据库 !db_name! 里所有表的数据"
+call :mysql_truncate_tables
+exit /b !errorlevel!
+
+:::::------------------------------------------------------------
+:::::update：导入「项目目录\common\sql\<数据库类型>_change.sql」
+:::::------------------------------------------------------------
+:update_database
+call :mysql_check_args
+if errorlevel 1 exit /b 1
+
+call :select_db_type
+call :select_server_id
+if errorlevel 1 exit /b 1
+
+call :compose_db_name
+
+set "mysql_sql_file=!project_dir!\common\sql\!db_type!_change.sql"
+if not exist "!mysql_sql_file!" (
+    echo [错误] 未找到 SQL 文件: !mysql_sql_file!
+    exit /b 1
+)
+
+call :mysql_database_exists
+if errorlevel 1 (
+    echo [错误] 数据库不存在: !db_name!
+    exit /b 1
+)
+
+call :mysql_import "!mysql_sql_file!"
+exit /b !errorlevel!
+
+
+:::::------------------------------------------------------------
+:::::数据库操作公共接口：让玩家选择数据库类型（1=logserver，2=dbserver）
+:::::  出参: 变量 db_type
+:::::------------------------------------------------------------
+:select_db_type
+echo 请选择数据库类型:
+echo   【1】!db_type_array[1]!
+echo   【2】!db_type_array[2]!
+choice /c 12 /n /m "输入序号选择数据库类型: "
+if errorlevel 2 (
+    set "db_type=!db_type_array[2]!"
+) else (
+    set "db_type=!db_type_array[1]!"
+)
+echo "[选择] 数据库类型: !db_type!"
+exit /b 0
+
+:::::------------------------------------------------------------
+:::::数据库操作公共接口：让玩家输入服ID（数字且大于 0）
+:::::  出参: 变量 db_server_id
+:::::------------------------------------------------------------
+:select_server_id
+set "db_server_id="
+set /p "db_server_id=请输入服ID（大于 0 的数字，如 1）: "
+echo !db_server_id!|findstr /r /c:"^[0-9][0-9]*$" >nul
+if errorlevel 1 (
+    echo [错误] 服ID必须是数字: !db_server_id!
+    exit /b 1
+)
+
+if !db_server_id! leq 0 (
+    echo [错误] 服ID必须大于0: !db_server_id!
+    exit /b 1
+)
+
+echo "[选择] 服ID: !db_server_id!"
+exit /b 0
+
+:::::------------------------------------------------------------
+:::::数据库操作公共接口：按类型和服ID把 db_name 拼成实际库名（就地改写 db_name）
+:::::  dbserver -> dbserver_<数据库名>_<服ID>，logserver -> logserver_<数据库名>
+:::::  与 config_global_vars.sh 的 DBSERVER_MYSQL_DBNAME=dbserver_%s_%d / LOGSERVER_MYSQL_DBNAME=logserver_%s 一致
+:::::  入参: 全局变量 db_type / db_name / db_server_id
+:::::------------------------------------------------------------
+:compose_db_name
+if /i "!db_type!"=="logserver" (
+    set "db_name=!db_type!_!db_name!"
+) else (
+    set "db_name=!db_type!_!db_name!_!db_server_id!"
+)
+echo "[库名] !db_name!"
+exit /b 0
+
+:::::------------------------------------------------------------
+:::::数据库操作公共接口：校验项目目录 / 数据库名，读取 MySQL 配置并定位 mysql.exe
+:::::  入参: 全局变量 project_dir（第2个参数）、db_name（第3个参数）
+:::::  出参: mysql_exe / mysql_hostname / mysql_port / mysql_username / mysql_password
+:::::  失败: 打印错误并 exit /b 1，调用方接 if errorlevel 1 exit /b 1
+:::::------------------------------------------------------------
+:mysql_check_args
+if "!project_dir!"=="" (
+    echo [错误] 未指定项目目录
+    exit /b 1
+)
+
+if "!db_name!"=="" (
+    echo [错误] 未指定数据库名
+    exit /b 1
+)
+
+call :mysql_load_config
+if errorlevel 1 exit /b 1
+
+if "!mysql_dirpath!"=="" (
+    echo [错误] 未配置 dirpath，请在界面「环境部署 / Local_MySql_配置」填写并点确认
+    exit /b 1
+)
+
+if "!mysql_hostname!"=="" (
+    echo [错误] 未配置 hostname，请在界面「环境部署 / Local_MySql_配置」填写并点确认
+    exit /b 1
+)
+
+if "!mysql_port!"=="" (
+    echo [错误] 未配置 port，请在界面「环境部署 / Local_MySql_配置」填写并点确认
+    exit /b 1
+)
+
+if "!mysql_username!"=="" (
+    echo [错误] 未配置 username，请在界面「环境部署 / Local_MySql_配置」填写并点确认
+    exit /b 1
+)
+
+if "!mysql_password!"=="" (
+    echo [错误] 未配置 password，请在界面「环境部署 / Local_MySql_配置」填写并点确认
+    exit /b 1
+)
+
+set "mysql_exe=!mysql_dirpath!\bin\mysql.exe"
+if not exist "!mysql_exe!" (
+    echo [错误] 未找到 mysql.exe: !mysql_exe!
+    exit /b 1
+)
+
+exit /b 0
+
+:::::------------------------------------------------------------
+:::::数据库操作公共接口：从 exe 同级的 config/config.json 读取「环境部署/Local_MySql_配置」
+:::::  出参: mysql_dirpath / mysql_hostname / mysql_port / mysql_username / mysql_password
+:::::------------------------------------------------------------
+:mysql_load_config
+set "mysql_config_path=%~dp0..\config\config.json"
+
+:::::解析用的临时文件放在脚本同级的 tmp 目录，用前清理、用完删除
+set "mysql_config_tmp=%~dp0tmp\local_server_mysql_config_tmp.txt"
+if not exist "%~dp0tmp" mkdir "%~dp0tmp"
+if exist "!mysql_config_tmp!" del /q "!mysql_config_tmp!" >nul 2>nul
+
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$ErrorActionPreference = 'Stop'; $j = ConvertFrom-Json (Get-Content -Raw -LiteralPath '%mysql_config_path%' -Encoding UTF8); $s = $j.'环境部署'.'Local_MySql_配置'; 'dirpath=' + $s.dirpath; 'hostname=' + $s.hostname; 'port=' + $s.port; 'username=' + $s.username; 'password=' + $s.password" > "!mysql_config_tmp!"
+
+if errorlevel 1 (
+    for %%i in ("%mysql_config_path%") do echo [错误] 读取配置失败，请检查 %%~fi 是否为合法 JSON
+    del /q "!mysql_config_tmp!" >nul 2>nul
+    exit /b 1
+)
+
+for /f "usebackq tokens=1,* delims==" %%a in ("!mysql_config_tmp!") do (
+    if /i "%%a"=="dirpath" set "mysql_dirpath=%%b"
+    if /i "%%a"=="hostname" set "mysql_hostname=%%b"
+    if /i "%%a"=="port" set "mysql_port=%%b"
+    if /i "%%a"=="username" set "mysql_username=%%b"
+    if /i "%%a"=="password" set "mysql_password=%%b"
+)
+del /q "!mysql_config_tmp!" >nul 2>nul
+exit /b 0
+
+:::::------------------------------------------------------------
+:::::数据库操作公共接口：判断 !db_name! 是否存在，存在 exit /b 0，不存在 exit /b 1
+:::::------------------------------------------------------------
+:mysql_database_exists
+"!mysql_exe!" -h!mysql_hostname! -P!mysql_port! -u!mysql_username! -p!mysql_password! -e "USE `!db_name!`;" >nul 2>nul
+if errorlevel 1 exit /b 1
+exit /b 0
+
+:::::------------------------------------------------------------
+:::::数据库操作公共接口：执行一条 SQL  %~1=要执行的 SQL
+:::::------------------------------------------------------------
+:mysql_execute
+echo "[执行] %~1"
+"!mysql_exe!" -h!mysql_hostname! -P!mysql_port! -u!mysql_username! -p!mysql_password! -e "%~1"
+if errorlevel 1 (
+    echo [错误] SQL 执行失败: %~1
+    exit /b 1
+)
+exit /b 0
+
+:::::------------------------------------------------------------
+:::::数据库操作公共接口：把 SQL 文件导入 !db_name! 库  %~1=SQL 文件全路径
+:::::------------------------------------------------------------
+:mysql_import
+echo "[导入] %~1"
+"!mysql_exe!" -h!mysql_hostname! -P!mysql_port! -u!mysql_username! -p!mysql_password! -D !db_name! < "%~1"
+if errorlevel 1 (
+    echo [错误] 导入 SQL 失败: %~1
+    exit /b 1
+)
+exit /b 0
+
+
+:::::------------------------------------------------------------
+:::::数据库操作公共接口：清空 !db_name! 里所有表的数据
+:::::  先从 information_schema 取表名，拼成 TRUNCATE 脚本再导入；
+:::::  前后关/开外键检查，避免带外键的表 TRUNCATE 失败
+:::::------------------------------------------------------------
+:mysql_truncate_tables
+set "mysql_tables_tmp=%~dp0tmp\local_server_mysql_tables_tmp.txt"
+set "mysql_truncate_tmp=%~dp0tmp\local_server_mysql_truncate_tmp.sql"
+if not exist "%~dp0tmp" mkdir "%~dp0tmp"
+if exist "!mysql_tables_tmp!" del /q "!mysql_tables_tmp!" >nul 2>nul
+
+"!mysql_exe!" -h!mysql_hostname! -P!mysql_port! -u!mysql_username! -p!mysql_password! -N -B -e "SELECT table_name FROM information_schema.tables WHERE table_schema = '!db_name!' AND table_type = 'BASE TABLE';" > "!mysql_tables_tmp!"
+if errorlevel 1 (
+    echo [错误] 查询表名失败: !db_name!
+    del /q "!mysql_tables_tmp!" >nul 2>nul
+    exit /b 1
+)
+
+set "mysql_tables_count=0"
+> "!mysql_truncate_tmp!" echo SET FOREIGN_KEY_CHECKS = 0;
+for /f "usebackq delims=" %%t in ("!mysql_tables_tmp!") do (
+    >> "!mysql_truncate_tmp!" echo TRUNCATE TABLE `%%t`;
+    set /a mysql_tables_count+=1
+)
+>> "!mysql_truncate_tmp!" echo SET FOREIGN_KEY_CHECKS = 1;
+
+echo "[清档] 表数量 !mysql_tables_count!"
+call :mysql_import "!mysql_truncate_tmp!"
+set "mysql_truncate_result=!errorlevel!"
+del /q "!mysql_tables_tmp!" "!mysql_truncate_tmp!" >nul 2>nul
+exit /b !mysql_truncate_result!

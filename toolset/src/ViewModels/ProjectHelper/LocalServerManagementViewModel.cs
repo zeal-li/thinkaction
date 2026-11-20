@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Windows.Input;
+
 using ToolSet.Infrastructure;
 using ToolSet.Infrastructure.Configuration;
 using ToolSet.Infrastructure.Scripts;
@@ -228,7 +229,7 @@ namespace ToolSet.ViewModels.ProjectHelper
         /// <summary>查询（功能待定）。</summary>
         public ICommand QueryCommand { get; }
 
-        /// <summary>创建（功能待定）。</summary>
+        /// <summary>创建：建「游戏数据库」，再导入 common\sql\&lt;数据库类型&gt;_table.sql，类型在控制台里选。</summary>
         public ICommand CreateDatabaseCommand { get; }
 
         /// <summary>删除（功能待定）。</summary>
@@ -359,9 +360,11 @@ namespace ToolSet.ViewModels.ProjectHelper
         {
         }
 
-        private void CreateDatabase()
-        {
-        }
+        /// <summary>
+        /// 创建：调 local_server_operate.bat create，传项目目录和「游戏数据库」，
+        /// 数据库类型（1=logserver / 2=dbserver）由脚本在控制台里让玩家选。
+        /// </summary>
+        private void CreateDatabase() => RunDatabaseAction("create", GameDatabase);
 
         private void DropDatabase()
         {
@@ -390,6 +393,17 @@ namespace ToolSet.ViewModels.ProjectHelper
         private void Clean() => RunServerTool("clean");
 
         private void Publish() => RunServerTool("publish");
+
+        /// <summary>
+        /// 数据库操作统一走 scripts/local_server_operate.bat：功能名、项目目录、数据库名，
+        /// 数据库类型由脚本自己在控制台里让玩家选（1=logserver，2=dbserver）。
+        /// </summary>
+        /// <param name="action">脚本功能名：create / delete / clear / update。</param>
+        /// <param name="databaseName">库名中间那段，如 lizexian；脚本里再按类型和服ID拼成 dbserver_lizexian_1 / logserver_lizexian。</param>
+        private void RunDatabaseAction(string action, string databaseName)
+            => _scripts.RunInConsole(
+                AppScripts.GetScriptPath(ServerScriptFileName),
+                action, CurrentProjectDir, databaseName);
 
         /// <summary>
         /// 服务器操作统一走 scripts/local_server_operate.bat，功能名就是脚本的动作名：
