@@ -10,7 +10,7 @@ chcp 936 >nul
 ::::项目目录 = 检出根目录\项目名，由调用方传进来，脚本里不写死项目路径
 ::::服务器名只对 start / stop / status 有意义，对应 server_tool.sh 的 -n
 ::::服务器类型（-m）和服ID（-s）都不走参数，start / stop / status 时由脚本在控制台里让玩家选
-::::服务器类型选 allserver 时，脚本自己按 server_model_array 的顺序逐个类型执行
+::::服务器类型选 allserver 时，脚本自己按所选分组（游戏服/公共服）的顺序逐个类型执行
 :::::------------------------------------------------------------
 :::::数据库操作：对本地 Windows MySQL 执行命令
 :::::  功能名: create（建库）/ delete（删库）/ clear（清档）/ update（更新）
@@ -25,14 +25,16 @@ set "project_dir=%~2"
 set "server_name=%~3"
 set "db_name=%~3"
 
-::::服务器类型固定只有这几种，start / stop / status 执行时由玩家按序号选择
+::::服务器类型分两组（游戏服 game_server_model_array / 公共服 global_server_model_array），start / stop / status 执行时由玩家按序号选择
 ::::顺序即 allserver 时的执行顺序，名字必须和 server_tool.sh 的 -m 取值一致（网关是 gateway，不是 gateserver）
-set "server_model_array[1]=allserver"
-set "server_model_array[2]=logserver"
-set "server_model_array[3]=dbserver"
-set "server_model_array[4]=gameserver"
-set "server_model_array[5]=loginserver"
-set "server_model_array[6]=gateway"
+set "game_server_model_array[0]=allserver"
+set "game_server_model_array[1]=dbserver"
+set "game_server_model_array[2]=gameserver"
+set "game_server_model_array[3]=loginserver"
+set "game_server_model_array[4]=gateway"
+
+set "global_server_model_array[100]=allserver"
+set "global_server_model_array[101]=logserver"
 
 :::::数据库类型固定只有两种，create / delete / clear / update 执行时由玩家按序号选择
 set "db_type_array[1]=dbserver"
@@ -244,28 +246,75 @@ exit /b !errorlevel!
 
 ::::------------------------------------------------------------
 ::::开服 / 关服 / 查看公共接口：让玩家选择服务器类型
-::::  出参: 变量 server_model，取值见 server_model_array
+::::  出参: 变量 server_model（选中的服务器类型）、server_group（game=游戏服 / global=公共服）
 ::::------------------------------------------------------------
 :select_server_model
 echo 请选择服务器类型:
-echo   【1】!server_model_array[1]!
-echo   【2】!server_model_array[2]!
-echo   【3】!server_model_array[3]!
-echo   【4】!server_model_array[4]!
-echo   【5】!server_model_array[5]!
-echo   【6】!server_model_array[6]!
-choice /c 123456 /n /m "输入序号选择服务器类型: "
+echo 游戏服:
+echo   【0】!game_server_model_array[0]!
+echo   【1】!game_server_model_array[1]!
+echo   【2】!game_server_model_array[2]!
+echo   【3】!game_server_model_array[3]!
+echo   【4】!game_server_model_array[4]!
+echo 公共服:
+echo   【100】!global_server_model_array[100]!
+echo   【101】!global_server_model_array[101]!
+set /p "server_select=输入序号选择服务器类型: "
 
-::::choice 把选中的序号放在 errorlevel 里，借 for 做一次变量间接取值
-for %%i in (!errorlevel!) do set "server_model=!server_model_array[%%i]!"
+::::校验：必须是数字
+echo !server_select!|findstr /r /c:"^[0-9][0-9]*$" >nul
+if errorlevel 1 (
+    echo [错误] 序号必须是数字: !server_select!
+    exit /b 1
+)
+
+::::按 100 分界选分组，再从对应数组取下标对应的类型，取不到（空）就是无效序号
+if !server_select! geq 100 (
+    set "server_group=global"
+) else (
+    set "server_group=game"
+)
+
+if "!server_group!"=="global" (
+    for %%i in (!server_select!) do set "server_model=!global_server_model_array[%%i]!"
+) else (
+    for %%i in (!server_select!) do set "server_model=!game_server_model_array[%%i]!"
+)
+
+if "!server_model!"=="" (
+    echo [错误] 无效的服务器类型序号: !server_select!
+    exit /b 1
+)
+
 echo "[选择] 服务器类型: !server_model!"
+exit /b 0
+
+::::------------------------------------------------------------
+::::公共接口：让玩家输入服ID（数字且大于 0），开关服 / 数据库操作共用
+::::  出参: 变量 server_id
+::::------------------------------------------------------------
+:select_server_id
+set "server_id="
+set /p "server_id=请输入服ID（大于 0 的数字，如 1）: "
+echo !server_id!|findstr /r /c:"^[0-9][0-9]*$" >nul
+if errorlevel 1 (
+    echo [错误] 服ID必须是数字: !server_id!
+    exit /b 1
+)
+
+if !server_id! leq 0 (
+    echo [错误] 服ID必须大于0: !server_id!
+    exit /b 1
+)
+
+echo "[选择] 服ID: !server_id!"
 exit /b 0
 
 ::::------------------------------------------------------------
 ::::开服 / 关服 / 查看公共接口：执行 server_tool.sh
 ::::  %~1=动作（start / stop / status），%~2=动作中文名（只用于日志）
-::::  依赖全局变量 server_model / wsl_path / server_name / server_id
-::::  选 allserver 时跳过 server_model_array[1] 自己，按数组顺序逐个类型执行，任意一次失败就中止
+::::  依赖全局变量 server_model / server_group / wsl_path / server_name / server_id
+::::  选 allserver 时跳过 allserver 自己，按所选分组（游戏服/公共服）逐个类型执行，任意一次失败就中止
 ::::------------------------------------------------------------
 :run_server_tool
 if /i "!server_model!"=="allserver" goto :run_server_tool_all
@@ -274,9 +323,16 @@ call :exec_server_tool "%~1" "!server_model!" "%~2"
 exit /b !errorlevel!
 
 :run_server_tool_all
-for %%i in (2 3 4 5 6) do (
-    call :exec_server_tool "%~1" "!server_model_array[%%i]!" "%~2"
-    if errorlevel 1 exit /b !errorlevel!
+if /i "!server_group!"=="global" (
+    for %%i in (101) do (
+        call :exec_server_tool "%~1" "!global_server_model_array[%%i]!" "%~2"
+        if errorlevel 1 exit /b !errorlevel!
+    )
+) else (
+    for %%i in (1 2 3 4) do (
+        call :exec_server_tool "%~1" "!game_server_model_array[%%i]!" "%~2"
+        if errorlevel 1 exit /b !errorlevel!
+    )
 )
 exit /b 0
 
@@ -498,27 +554,6 @@ if errorlevel 2 (
     set "db_type=!db_type_array[1]!"
 )
 echo "[选择] 数据库类型: !db_type!"
-exit /b 0
-
-:::::------------------------------------------------------------
-:::::数据库操作公共接口：让玩家输入服ID（数字且大于 0）
-:::::  出参: 变量 server_id
-:::::------------------------------------------------------------
-:select_server_id
-set "server_id="
-set /p "server_id=请输入服ID（大于 0 的数字，如 1）: "
-echo !server_id!|findstr /r /c:"^[0-9][0-9]*$" >nul
-if errorlevel 1 (
-    echo [错误] 服ID必须是数字: !server_id!
-    exit /b 1
-)
-
-if !server_id! leq 0 (
-    echo [错误] 服ID必须大于0: !server_id!
-    exit /b 1
-)
-
-echo "[选择] 服ID: !server_id!"
 exit /b 0
 
 :::::------------------------------------------------------------

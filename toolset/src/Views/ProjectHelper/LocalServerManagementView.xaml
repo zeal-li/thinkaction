@@ -116,12 +116,10 @@
                     Margin="0,0,0,12" />
 
             <!-- 服务器 -->
+            <TextBlock Text="服务器"
+                       Style="{StaticResource SectionTitleText}" />
             <StackPanel Orientation="Horizontal"
-                        Margin="0,0,0,8">
-                <TextBlock Text="服务器"
-                           Style="{StaticResource SectionTitleText}"
-                           Margin="2,0,12,0"
-                           VerticalAlignment="Center" />
+                        Margin="0,0,0,10">
                 <Button Content="编译"
                         Style="{StaticResource ActionButton}"
                         MinWidth="64"
@@ -143,12 +141,8 @@
                         Command="{Binding PublishCommand}" />
             </StackPanel>
 
-            <!-- 游戏服：服务器类型和服ID由脚本在控制台里让玩家选 -->
+            <!-- 服务器状态：服务器类型和服ID由脚本在控制台里让玩家选 -->
             <StackPanel Orientation="Horizontal">
-                <TextBlock Text="游戏服"
-                           Style="{StaticResource FieldLabelText}"
-                           Margin="0,0,10,0"
-                           VerticalAlignment="Center" />
                 <Button Content="开服"
                         Style="{StaticResource ActionButton}"
                         MinWidth="64"
