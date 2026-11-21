@@ -13,11 +13,11 @@ chcp 936 >nul
 ::::服务器类型选 allserver 时，脚本自己按所选分组（游戏服/公共服）的顺序逐个类型执行
 :::::------------------------------------------------------------
 :::::数据库操作：对本地 Windows MySQL 执行命令
-:::::  功能名: create（建库）/ delete（删库）/ clear（清档）/ update（更新）
+:::::  功能名: db_create（建库）/ db_delete（删库）/ db_clear（清档）/ db_update（更新）
 :::::  第3参数只传中间那段库名（如 lizexian），实际库名按类型拼: dbserver_<数据库名>_<服ID> / logserver_<数据库名>
-:::::  SQL 取「项目目录\common\sql」下的 <数据库类型>_table.sql（create）或 <数据库类型>_change.sql（update），clear 不需要 SQL 文件
+:::::  SQL 取「项目目录\common\sql」下的 <数据库类型>_table.sql（db_create）或 <数据库类型>_change.sql（db_update），db_clear 不需要 SQL 文件
 :::::  连接信息取 exe 同级 config\config.json 的「环境部署/Local_MySql_配置」（dirpath / hostname / port / username / password）
-:::::  例: local_server_operate.bat create C:\data\ikun_01_cn lizexian
+:::::  例: local_server_operate.bat db_create C:\data\ikun_01_cn lizexian
 :::::------------------------------------------------------------
 
 set "action=%~1"
@@ -79,22 +79,22 @@ if /i "!action!"=="status" (
     goto :finish
 )
 
-if /i "!action!"=="create" (
+if /i "!action!"=="db_create" (
     call :create_database
     goto :finish
 )
 
-if /i "!action!"=="delete" (
+if /i "!action!"=="db_delete" (
     call :delete_database
     goto :finish
 )
 
-if /i "!action!"=="clear" (
+if /i "!action!"=="db_clear" (
     call :clear_database
     goto :finish
 )
 
-if /i "!action!"=="update" (
+if /i "!action!"=="db_update" (
     call :update_database
     goto :finish
 )
@@ -121,13 +121,13 @@ echo   stop    - 关服：同上，-o stop
 echo   status  - 查看：同上，-o status
 echo.
 echo 数据库操作（本地 Windows MySQL，SQL 取 项目目录\common\sql）:
-echo   create  - 建库：建「实际库名」，再导入 ^<数据库类型^>_table.sql
-echo   delete  - 删库：删除「实际库名」
-echo   clear   - 清档：保留库和表结构，清空「实际库名」里所有表的数据（TRUNCATE TABLE，不需要 SQL 文件）
-echo   update  - 更新：导入 ^<数据库类型^>_change.sql
+echo   db_create  - 建库：建「实际库名」，再导入 ^<数据库类型^>_table.sql
+echo   db_delete  - 删库：删除「实际库名」
+echo   db_clear   - 清档：保留库和表结构，清空「实际库名」里所有表的数据（TRUNCATE TABLE，不需要 SQL 文件）
+echo   db_update  - 更新：导入 ^<数据库类型^>_change.sql
 echo 数据库操作用 第3参数=数据库名，数据库类型和服ID执行时输入（1=!db_type_array[1]!，2=!db_type_array[2]!）:
 echo 实际库名按类型拼: dbserver_^<数据库名^>_^<服ID^> / logserver_^<数据库名^>
-echo   %~nx0 create C:\data\ikun_01_cn lizexian
+echo   %~nx0 db_create C:\data\ikun_01_cn lizexian
 exit /b 0
 
 ::::------------------------------------------------------------
@@ -434,7 +434,7 @@ exit /b 0
 
 
 :::::------------------------------------------------------------
-:::::create：建库，再导入「项目目录\common\sql\<数据库类型>_table.sql」
+:::::db_create：建库，再导入「项目目录\common\sql\<数据库类型>_table.sql」
 :::::------------------------------------------------------------
 :create_database
 call :mysql_check_args
@@ -465,7 +465,7 @@ call :mysql_import "!mysql_sql_file!"
 exit /b !errorlevel!
 
 :::::------------------------------------------------------------
-:::::delete：删库
+:::::db_delete：删库
 :::::------------------------------------------------------------
 :delete_database
 call :mysql_check_args
@@ -487,7 +487,7 @@ call :mysql_execute "DROP DATABASE IF EXISTS `!db_name!`;"
 exit /b !errorlevel!
 
 :::::------------------------------------------------------------
-:::::clear：清档，保留数据库和表结构，只清空库里所有表的数据（TRUNCATE TABLE，不需要 SQL 文件）
+:::::db_clear：清档，保留数据库和表结构，只清空库里所有表的数据（TRUNCATE TABLE，不需要 SQL 文件）
 :::::------------------------------------------------------------
 :clear_database
 call :mysql_check_args
@@ -510,7 +510,7 @@ call :mysql_truncate_tables
 exit /b !errorlevel!
 
 :::::------------------------------------------------------------
-:::::update：导入「项目目录\common\sql\<数据库类型>_change.sql」
+:::::db_update：导入「项目目录\common\sql\<数据库类型>_change.sql」
 :::::------------------------------------------------------------
 :update_database
 call :mysql_check_args
