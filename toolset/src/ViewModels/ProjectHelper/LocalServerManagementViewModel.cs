@@ -125,13 +125,13 @@ namespace ToolSet.ViewModels.ProjectHelper
         /// <summary>创建：建「游戏数据库」，再导入 common\sql\&lt;数据库类型&gt;_table.sql，类型在控制台里选。</summary>
         public ICommand CreateDatabaseCommand { get; }
 
-        /// <summary>删除（功能待定）。</summary>
+        /// <summary>删除：删除「游戏数据库」对应的实际库（类型_库名_服ID）。</summary>
         public ICommand DropDatabaseCommand { get; }
 
-        /// <summary>清档（功能待定）。</summary>
+        /// <summary>清档：保留库和表结构，清空实际库里所有表的数据。</summary>
         public ICommand ClearDataCommand { get; }
 
-        /// <summary>更新（功能待定）。</summary>
+        /// <summary>更新：导入 common\sql\&lt;数据库类型&gt;_change.sql，类型在控制台里选。</summary>
         public ICommand UpdateCommand { get; }
 
         /// <summary>导出（功能待定）。</summary>
@@ -244,17 +244,14 @@ namespace ToolSet.ViewModels.ProjectHelper
         /// </summary>
         private void CreateDatabase() => RunDatabaseAction("db_create", ConfirmedGameDatabase);
 
-        private void DropDatabase()
-        {
-        }
+        /// <summary>删除：调 local_server_operate.bat db_delete，删除「游戏数据库」对应的实际库。</summary>
+        private void DropDatabase() => RunDatabaseAction("db_delete", ConfirmedGameDatabase);
 
-        private void ClearData()
-        {
-        }
+        /// <summary>清档：调 local_server_operate.bat db_clear，清空实际库所有表的数据（保留库和表结构）。</summary>
+        private void ClearData() => RunDatabaseAction("db_clear", ConfirmedGameDatabase);
 
-        private void Update()
-        {
-        }
+        /// <summary>更新：调 local_server_operate.bat db_update，导入 common\sql\&lt;数据库类型&gt;_change.sql。</summary>
+        private void Update() => RunDatabaseAction("db_update", ConfirmedGameDatabase);
 
         private void Export()
         {
