@@ -300,15 +300,21 @@ namespace ToolSet.ViewModels.ProjectHelper
         private string ReadValue(string key)
             => SectionPath is string section ? _config.Get($"{section}/{key}") : string.Empty;
 
+        /// <summary>
+        /// 配置里已确认的「游戏数据库」，下发给脚本时用这个，不用输入框的实时值；
+        /// 没点「确认」时输入框的改动不会带进脚本。
+        /// </summary>
+        private string ConfirmedGameDatabase => ReadValue(GameDatabaseKey);
+
         private void Query()
         {
         }
 
         /// <summary>
         /// 创建：调 local_server_operate.bat create，传项目目录和「游戏数据库」，
-        /// 数据库类型（1=logserver / 2=dbserver）由脚本在控制台里让玩家选。
+        /// 数据库类型（1=dbserver / 2=logserver）由脚本在控制台里让玩家选。
         /// </summary>
-        private void CreateDatabase() => RunDatabaseAction("create", GameDatabase);
+        private void CreateDatabase() => RunDatabaseAction("create", ConfirmedGameDatabase);
 
         private void DropDatabase()
         {
@@ -340,7 +346,7 @@ namespace ToolSet.ViewModels.ProjectHelper
 
         /// <summary>
         /// 数据库操作统一走 scripts/local_server_operate.bat：功能名、项目目录、数据库名，
-        /// 数据库类型由脚本自己在控制台里让玩家选（1=logserver，2=dbserver）。
+        /// 数据库类型由脚本自己在控制台里让玩家选（1=dbserver，2=logserver）。
         /// </summary>
         /// <param name="action">脚本功能名：create / delete / clear / update。</param>
         /// <param name="databaseName">库名中间那段，如 lizexian；脚本里再按类型和服ID拼成 dbserver_lizexian_1 / logserver_lizexian。</param>
@@ -363,11 +369,11 @@ namespace ToolSet.ViewModels.ProjectHelper
 
         /// <summary>
         /// 开服 / 关服 / 查看的参数：功能名、项目目录、服务器名、服务器类型。
-        /// 服务器名对应 server_tool.sh 的 -n，用「游戏数据库」的值；
+        /// 服务器名对应 server_tool.sh 的 -n，用配置里已确认的「游戏数据库」；
         /// 服ID（-s）不走参数，由脚本在控制台里让玩家输入。
         /// </summary>
         private string[] ServerControlArguments(string action, string serverModel)
-            => new[] { action, CurrentProjectDir, GameDatabase, serverModel };
+            => new[] { action, CurrentProjectDir, ConfirmedGameDatabase, serverModel };
 
         /// <summary>
         /// 当前选中项目的「检出根目录\项目名」，脚本到它下面的 server\skynet（编译/发布）
