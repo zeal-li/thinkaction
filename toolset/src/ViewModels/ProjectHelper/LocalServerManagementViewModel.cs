@@ -25,11 +25,8 @@ namespace ToolSet.ViewModels.ProjectHelper
         private const string ServerScriptFileName = "local_server_operate.bat";
 
         private const string GameDatabaseKey = "游戏数据库";
-        private const string LogDatabaseKey = "日志数据库";
         private const string GameBasePortKey = "游戏基准端口";
         private const string LogServerPortKey = "日志服端口";
-        private const string ServerNameKey = "服务器名";
-        private const string ServerIdKey = "服务器ID";
 
         /// <summary>下拉框里的「全部」选项：选中它时对该下拉框里除它以外的所有服务器依次操作。</summary>
         private const string AllServerOption = "allserver";
@@ -59,11 +56,8 @@ namespace ToolSet.ViewModels.ProjectHelper
         private readonly Dictionary<string, string> _savedValues = new Dictionary<string, string>();
 
         private string _gameDatabase = string.Empty;
-        private string _logDatabase = string.Empty;
         private string _gameBasePort = string.Empty;
         private string _logServerPort = string.Empty;
-        private string _serverName = string.Empty;
-        private string _serverId = string.Empty;
         private string? _selectedPublicServer;
         private string? _selectedGameServer;
         private bool _hasPendingChanges;
@@ -141,19 +135,6 @@ namespace ToolSet.ViewModels.ProjectHelper
             }
         }
 
-        /// <summary>日志数据库名。</summary>
-        public string LogDatabase
-        {
-            get => _logDatabase;
-            set
-            {
-                if (SetProperty(ref _logDatabase, value))
-                {
-                    RefreshPendingChanges();
-                }
-            }
-        }
-
         /// <summary>游戏基准端口。</summary>
         public string GameBasePort
         {
@@ -180,31 +161,6 @@ namespace ToolSet.ViewModels.ProjectHelper
             }
         }
 
-        /// <summary>服务器名，对应 server_tool.sh 的 -n，启动配置/日志/进程名里都用它。</summary>
-        public string ServerName
-        {
-            get => _serverName;
-            set
-            {
-                if (SetProperty(ref _serverName, value))
-                {
-                    RefreshPendingChanges();
-                }
-            }
-        }
-
-        /// <summary>服务器ID，对应 server_tool.sh 的 -s，开服/关服/查看时必须是大于 0 的数字。</summary>
-        public string ServerId
-        {
-            get => _serverId;
-            set
-            {
-                if (SetProperty(ref _serverId, value))
-                {
-                    RefreshPendingChanges();
-                }
-            }
-        }
 
         /// <summary>公共服下拉框的选项。</summary>
         public ObservableCollection<string> PublicServers { get; } = new ObservableCollection<string>();
@@ -284,11 +240,8 @@ namespace ToolSet.ViewModels.ProjectHelper
         {
             _isLoading = true;
             GameDatabase = ReadValue(GameDatabaseKey);
-            LogDatabase = ReadValue(LogDatabaseKey);
             GameBasePort = ReadValue(GameBasePortKey);
             LogServerPort = ReadValue(LogServerPortKey);
-            ServerName = ReadValue(ServerNameKey);
-            ServerId = ReadValue(ServerIdKey);
             _isLoading = false;
 
             MarkAsSaved();
@@ -303,11 +256,8 @@ namespace ToolSet.ViewModels.ProjectHelper
                 _config.SetValues(section, new Dictionary<string, string>
                 {
                     [GameDatabaseKey] = GameDatabase,
-                    [LogDatabaseKey] = LogDatabase,
                     [GameBasePortKey] = GameBasePort,
                     [LogServerPortKey] = LogServerPort,
-                    [ServerNameKey] = ServerName,
-                    [ServerIdKey] = ServerId,
                 });
             }
 
@@ -317,11 +267,8 @@ namespace ToolSet.ViewModels.ProjectHelper
         private void MarkAsSaved()
         {
             _savedValues[GameDatabaseKey] = GameDatabase;
-            _savedValues[LogDatabaseKey] = LogDatabase;
             _savedValues[GameBasePortKey] = GameBasePort;
             _savedValues[LogServerPortKey] = LogServerPort;
-            _savedValues[ServerNameKey] = ServerName;
-            _savedValues[ServerIdKey] = ServerId;
 
             HasPendingChanges = false;
         }
@@ -335,11 +282,8 @@ namespace ToolSet.ViewModels.ProjectHelper
 
             HasPendingChanges =
                 GameDatabase != _savedValues[GameDatabaseKey]
-                || LogDatabase != _savedValues[LogDatabaseKey]
                 || GameBasePort != _savedValues[GameBasePortKey]
-                || LogServerPort != _savedValues[LogServerPortKey]
-                || ServerName != _savedValues[ServerNameKey]
-                || ServerId != _savedValues[ServerIdKey];
+                || LogServerPort != _savedValues[LogServerPortKey];
         }
 
         /// <summary>顶部当前选中的项目名，没有选中项目时为空串。</summary>
@@ -392,7 +336,7 @@ namespace ToolSet.ViewModels.ProjectHelper
 
         private void Clean() => RunServerTool("clean");
 
-        private void Publish() => RunServerTool("publish");
+        private void Publish() => RunServerTool("release");
 
         /// <summary>
         /// 数据库操作统一走 scripts/local_server_operate.bat：功能名、项目目录、数据库名，
@@ -406,22 +350,24 @@ namespace ToolSet.ViewModels.ProjectHelper
                 action, CurrentProjectDir, databaseName);
 
         /// <summary>
-        /// 服务器操作统一走 scripts/local_server_operate.bat，功能名就是脚本的动作名：
-        /// build / rebuild / clean / publish 登录 WSL 进入「项目目录\server\skynet」，
-        /// start / stop / status 进入「项目目录\common\release\ubuntu」，
-        /// 执行 sudo ./server_tool.sh -o &lt;build|rebuild|clean|release|start|stop|status&gt;，
-        /// 其中 publish 成功后脚本自己打开 Svn 提交界面。
+        /// 编译类操作统一走 scripts/local_server_operate.bat，功能名就是脚本的动作名：
+        /// build / rebuild / clean / release 登录 WSL 进入「项目目录\server\skynet」，
+        /// 执行 sudo ./server_tool.sh -o &lt;build|rebuild|clean|release&gt;，只传功能名和项目目录，
+        /// 其中 release 成功后脚本自己打开 Svn 提交界面。
         /// </summary>
-        /// <param name="action">脚本功能名：build / rebuild / clean / publish / start / stop / status。</param>
-        /// <param name="serverModel">服务器类型，一次只传一个；只有 start / stop / status 用得上，其余传空。</param>
-        private void RunServerTool(string action, string serverModel = "")
+        /// <param name="action">脚本功能名：build / rebuild / clean / release。</param>
+        private void RunServerTool(string action)
             => _scripts.RunInConsole(
                 AppScripts.GetScriptPath(ServerScriptFileName),
-                ServerToolArguments(action, serverModel));
+                action, CurrentProjectDir);
 
-        /// <summary>一次脚本调用的参数：功能名、项目目录、服务器名、服务器ID、服务器类型。</summary>
-        private string[] ServerToolArguments(string action, string serverModel = "")
-            => new[] { action, CurrentProjectDir, ServerName, ServerId, serverModel };
+        /// <summary>
+        /// 开服 / 关服 / 查看的参数：功能名、项目目录、服务器名、服务器类型。
+        /// 服务器名对应 server_tool.sh 的 -n，用「游戏数据库」的值；
+        /// 服ID（-s）不走参数，由脚本在控制台里让玩家输入。
+        /// </summary>
+        private string[] ServerControlArguments(string action, string serverModel)
+            => new[] { action, CurrentProjectDir, GameDatabase, serverModel };
 
         /// <summary>
         /// 当前选中项目的「检出根目录\项目名」，脚本到它下面的 server\skynet（编译/发布）
@@ -460,7 +406,7 @@ namespace ToolSet.ViewModels.ProjectHelper
             var calls = new List<string[]>();
             foreach (var serverModel in SelectedServerModels(options, selected))
             {
-                calls.Add(ServerToolArguments(action, serverModel));
+                calls.Add(ServerControlArguments(action, serverModel));
             }
 
             _scripts.RunInConsoleSequential(AppScripts.GetScriptPath(ServerScriptFileName), calls);

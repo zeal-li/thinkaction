@@ -4,11 +4,12 @@ setlocal enabledelayedexpansion
 ::::统一切到 936 代码页，保证本脚本（GBK）里的中文正常显示
 chcp 936 >nul
 
-::::用法: local_server_operate.bat <功能名> <项目目录> [服务器名] [服务器ID] [服务器类型]
-::::功能名: build（编译）/ rebuild（重编）/ clean（清理）/ publish（发布）
+::::用法: local_server_operate.bat <功能名> <项目目录> [服务器名] [服务器类型]
+::::功能名: build（编译）/ rebuild（重编）/ clean（清理）/ release（发布）
 ::::        start（开服）/ stop（关服）/ status（查看）
 ::::项目目录 = 检出根目录\项目名，由调用方传进来，脚本里不写死项目路径
-::::服务器名 / 服务器ID / 服务器类型只对 start / stop / status 有意义，对应 server_tool.sh 的 -n / -s / -m
+::::服务器名 / 服务器类型只对 start / stop / status 有意义，对应 server_tool.sh 的 -n / -m
+::::服ID（-s）不走参数，start / stop / status 和数据库操作时都由脚本在控制台里让玩家输入
 ::::服务器类型一次只传一个（如 dbserver），选 allserver 时由调用方拆开逐个调用本脚本
 :::::------------------------------------------------------------
 :::::数据库操作：对本地 Windows MySQL 执行命令
@@ -16,14 +17,13 @@ chcp 936 >nul
 :::::  第3参数只传中间那段库名（如 lizexian），实际库名按类型拼: dbserver_<数据库名>_<服ID> / logserver_<数据库名>
 :::::  SQL 取「项目目录\common\sql」下的 <数据库类型>_table.sql（create）或 <数据库类型>_change.sql（update），clear 不需要 SQL 文件
 :::::  连接信息取 exe 同级 config\config.json 的「环境部署/Local_MySql_配置」（dirpath / hostname / port / username / password）
-:::::  例: local_server_operate.bat create C:\data\ikun_01_cn dbserver_game_1
+:::::  例: local_server_operate.bat create C:\data\ikun_01_cn lizexian
 :::::------------------------------------------------------------
 
 set "action=%~1"
 set "project_dir=%~2"
 set "server_name=%~3"
-set "server_id=%~4"
-set "server_model=%~5"
+set "server_model=%~4"
 set "db_name=%~3"
 
 :::::数据库类型固定只有两种，create / delete / clear / update 执行时由玩家按序号选择
@@ -50,8 +50,8 @@ if /i "!action!"=="clean" (
     goto :finish
 )
 
-if /i "!action!"=="publish" (
-    call :publish_project
+if /i "!action!"=="release" (
+    call :release_project
     goto :finish
 )
 
@@ -101,24 +101,24 @@ exit /b !errorlevel!
 ::::用法
 ::::------------------------------------------------------------
 :print_usage
-echo 用法: %~nx0 ^<功能名^> ^<项目目录^> [服务器名] [服务器ID] [服务器类型]
+echo 用法: %~nx0 ^<功能名^> ^<项目目录^> [服务器名/数据库名] [服务器类型]
 echo 可用功能:
 echo   build   - 编译：登录 WSL，进入「项目目录\server\skynet」用 sudo 执行 ./server_tool.sh -o build
 echo   rebuild - 重编：同上，-o rebuild
 echo   clean   - 清理：同上，-o clean
-echo   publish - 发布：同上，-o release，发布成功后打开 TortoiseSVN 提交界面提交「项目目录\common\release\ubuntu」
-echo   start   - 开服：进入「项目目录\common\release\ubuntu」执行 -o start -m 类型 -n 服务器名 -s 服务器ID，一次处理一个类型
+echo   release - 发布：同上，-o release，发布成功后打开 TortoiseSVN 提交界面提交「项目目录\common\release\ubuntu」
+echo   start   - 开服：进入「项目目录\common\release\ubuntu」执行 -o start -m 类型 -n 服务器名 -s 服ID（服ID执行时输入），一次处理一个类型
 echo   stop    - 关服：同上，-o stop
 echo   status  - 查看：同上，-o status
 echo.
 echo 数据库操作（本地 Windows MySQL，SQL 取 项目目录\common\sql）:
-echo   create  - 建库：建库「数据库名」，再导入 ^<数据库类型^>_table.sql
-echo   delete  - 删库：删除库「数据库名」
-echo   clear   - 清档：保留库和表结构，清空「数据库名」里所有表的数据（TRUNCATE TABLE，不需要 SQL 文件）
+echo   create  - 建库：建「实际库名」，再导入 ^<数据库类型^>_table.sql
+echo   delete  - 删库：删除「实际库名」
+echo   clear   - 清档：保留库和表结构，清空「实际库名」里所有表的数据（TRUNCATE TABLE，不需要 SQL 文件）
 echo   update  - 更新：导入 ^<数据库类型^>_change.sql
-echo 数据库操作用 第3参数=数据库名，数据库类型和服ID执行时输入（类型 1=logserver，2=dbserver）:
+echo 数据库操作用 第3参数=数据库名，数据库类型和服ID执行时输入（1=!db_type_array[1]!，2=!db_type_array[2]!）:
 echo 实际库名按类型拼: dbserver_^<数据库名^>_^<服ID^> / logserver_^<数据库名^>
-echo   %~nx0 create C:\data\ikun_01_cn dbserver_game_1
+echo   %~nx0 create C:\data\ikun_01_cn lizexian
 exit /b 0
 
 ::::------------------------------------------------------------
@@ -161,9 +161,9 @@ call "%~dp0sshcall_wsl.bat" "!ssh_commond!"
 exit /b !errorlevel!
 
 ::::------------------------------------------------------------
-::::publish：发布，成功后打开 Svn 提交界面提交「项目目录\common\release\ubuntu」
+::::release：发布，成功后打开 Svn 提交界面提交「项目目录\common\release\ubuntu」
 ::::------------------------------------------------------------
-:publish_project
+:release_project
 call :check_source_skynet_dir
 if errorlevel 1 exit /b 1
 
@@ -171,10 +171,10 @@ call :to_wsl_path "!skynet_dir!"
 
 set "ssh_commond=cd '!wsl_path!' && sudo ./server_tool.sh -o release"
 call "%~dp0sshcall_wsl.bat" "!ssh_commond!"
-set "publish_result=!errorlevel!"
-if not "!publish_result!"=="0" (
-    echo [错误] 发布失败，退出码 !publish_result!，不打开Svn提交界面
-    exit /b !publish_result!
+set "release_result=!errorlevel!"
+if not "!release_result!"=="0" (
+    echo [错误] 发布失败，退出码 !release_result!，不打开Svn提交界面
+    exit /b !release_result!
 )
 
 call :open_svn_commit
@@ -185,6 +185,9 @@ exit /b !errorlevel!
 ::::------------------------------------------------------------
 :start_server
 call :check_release_skynet_dir
+if errorlevel 1 exit /b 1
+
+call :select_server_id
 if errorlevel 1 exit /b 1
 
 call :to_wsl_path "!skynet_dir!"
@@ -203,6 +206,9 @@ exit /b !errorlevel!
 call :check_release_skynet_dir
 if errorlevel 1 exit /b 1
 
+call :select_server_id
+if errorlevel 1 exit /b 1
+
 call :to_wsl_path "!skynet_dir!"
 
 echo "[操作] 关服 服务器类型: !server_model!"
@@ -217,6 +223,9 @@ exit /b !errorlevel!
 call :check_release_skynet_dir
 if errorlevel 1 exit /b 1
 
+call :select_server_id
+if errorlevel 1 exit /b 1
+
 call :to_wsl_path "!skynet_dir!"
 
 echo "[操作] 查看 服务器类型: !server_model!"
@@ -225,7 +234,7 @@ call "%~dp0sshcall_wsl.bat" "!ssh_commond!"
 exit /b !errorlevel!
 
 ::::------------------------------------------------------------
-::::公共接口：校验项目目录并定位「源码」里的 server_tool.sh，build / rebuild / clean / publish 用
+::::公共接口：校验项目目录并定位「源码」里的 server_tool.sh，build / rebuild / clean / release 用
 ::::  目标目录: !project_dir!\server\skynet
 ::::  入参: 无，直接读全局变量 project_dir（由调用方传入的第 2 个参数）
 ::::  出参: 变量 skynet_dir，如 C:\data\ikun_01_cn\server\skynet
@@ -434,36 +443,36 @@ exit /b 0
 
 :::::------------------------------------------------------------
 :::::数据库操作公共接口：让玩家输入服ID（数字且大于 0）
-:::::  出参: 变量 db_server_id
+:::::  出参: 变量 server_id
 :::::------------------------------------------------------------
 :select_server_id
-set "db_server_id="
-set /p "db_server_id=请输入服ID（大于 0 的数字，如 1）: "
-echo !db_server_id!|findstr /r /c:"^[0-9][0-9]*$" >nul
+set "server_id="
+set /p "server_id=请输入服ID（大于 0 的数字，如 1）: "
+echo !server_id!|findstr /r /c:"^[0-9][0-9]*$" >nul
 if errorlevel 1 (
-    echo [错误] 服ID必须是数字: !db_server_id!
+    echo [错误] 服ID必须是数字: !server_id!
     exit /b 1
 )
 
-if !db_server_id! leq 0 (
-    echo [错误] 服ID必须大于0: !db_server_id!
+if !server_id! leq 0 (
+    echo [错误] 服ID必须大于0: !server_id!
     exit /b 1
 )
 
-echo "[选择] 服ID: !db_server_id!"
+echo "[选择] 服ID: !server_id!"
 exit /b 0
 
 :::::------------------------------------------------------------
 :::::数据库操作公共接口：按类型和服ID把 db_name 拼成实际库名（就地改写 db_name）
 :::::  dbserver -> dbserver_<数据库名>_<服ID>，logserver -> logserver_<数据库名>
 :::::  与 config_global_vars.sh 的 DBSERVER_MYSQL_DBNAME=dbserver_%s_%d / LOGSERVER_MYSQL_DBNAME=logserver_%s 一致
-:::::  入参: 全局变量 db_type / db_name / db_server_id
+:::::  入参: 全局变量 db_type / db_name / server_id
 :::::------------------------------------------------------------
 :compose_db_name
 if /i "!db_type!"=="logserver" (
     set "db_name=!db_type!_!db_name!"
 ) else (
-    set "db_name=!db_type!_!db_name!_!db_server_id!"
+    set "db_name=!db_type!_!db_name!_!server_id!"
 )
 echo "[库名] !db_name!"
 exit /b 0
