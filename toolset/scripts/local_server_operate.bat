@@ -4,11 +4,11 @@ setlocal enabledelayedexpansion
 ::::统一切到 936 代码页，保证本脚本（GBK）里的中文正常显示
 chcp 936 >nul
 
-::::用法: local_server_operate.bat <功能名> <项目目录> [服务器名]
+::::用法: local_server_operate.bat <功能名> <项目目录> [服务器名/数据库名]
 ::::功能名: build（编译）/ rebuild（重编）/ clean（清理）/ release（发布）
 ::::        start（开服）/ stop（关服）/ status（查看）
 ::::项目目录 = 检出根目录\项目名，由调用方传进来，脚本里不写死项目路径
-::::服务器名只对 start / stop / status 有意义，对应 server_tool.sh 的 -n
+::::第3参数：start / stop / status 时是服务器名（server_tool.sh 的 -n），数据库操作时是库名中间段
 ::::服务器类型（-m）和服ID（-s）都不走参数，start / stop / status 时由脚本在控制台里让玩家选
 ::::服务器类型选 allserver 时，脚本自己按所选分组（游戏服/公共服）的顺序逐个类型执行
 :::::------------------------------------------------------------
@@ -22,11 +22,10 @@ chcp 936 >nul
 
 set "action=%~1"
 set "project_dir=%~2"
-set "server_name=%~3"
 set "db_name=%~3"
 
 ::::服务器类型分两组（游戏服 game_server_model_array / 公共服 global_server_model_array），start / stop / status 执行时由玩家按序号选择
-::::顺序即 allserver 时的执行顺序，名字必须和 server_tool.sh 的 -m 取值一致（网关是 gateway，不是 gateserver）
+::::顺序即 allserver 时的执行顺序，名字必须和 server_tool.sh 的 -m 取值一致
 set "game_server_model_array[0]=allserver"
 set "game_server_model_array[1]=dbserver"
 set "game_server_model_array[2]=gameserver"
@@ -344,7 +343,7 @@ exit /b 0
 ::::------------------------------------------------------------
 :exec_server_tool
 echo "[操作] %~3 服务器类型: %~2"
-set "ssh_commond=cd '!wsl_path!' && sudo ./server_tool.sh -o %~1 -m %~2 -n !server_name! -s !server_id!"
+set "ssh_commond=cd '!wsl_path!' && sudo ./server_tool.sh -o %~1 -m %~2 -n !db_name! -s !server_id!"
 call "%~dp0sshcall_wsl.bat" "!ssh_commond!"
 exit /b !errorlevel!
 
