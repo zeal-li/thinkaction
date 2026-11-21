@@ -4,13 +4,13 @@ setlocal enabledelayedexpansion
 ::::统一切到 936 代码页，保证本脚本（GBK）里的中文正常显示
 chcp 936 >nul
 
-::::用法: local_server_operate.bat <功能名> <项目目录> [服务器名] [服务器类型]
+::::用法: local_server_operate.bat <功能名> <项目目录> [服务器名]
 ::::功能名: build（编译）/ rebuild（重编）/ clean（清理）/ release（发布）
 ::::        start（开服）/ stop（关服）/ status（查看）
 ::::项目目录 = 检出根目录\项目名，由调用方传进来，脚本里不写死项目路径
-::::服务器名 / 服务器类型只对 start / stop / status 有意义，对应 server_tool.sh 的 -n / -m
-::::服ID（-s）不走参数，start / stop / status 和数据库操作时都由脚本在控制台里让玩家输入
-::::服务器类型一次只传一个（如 dbserver），选 allserver 时由调用方拆开逐个调用本脚本
+::::服务器名只对 start / stop / status 有意义，对应 server_tool.sh 的 -n
+::::服务器类型（-m）和服ID（-s）都不走参数，start / stop / status 时由脚本在控制台里让玩家选
+::::服务器类型选 allserver 时，脚本自己按 server_model_array 的顺序逐个类型执行
 :::::------------------------------------------------------------
 :::::数据库操作：对本地 Windows MySQL 执行命令
 :::::  功能名: create（建库）/ delete（删库）/ clear（清档）/ update（更新）
@@ -23,8 +23,16 @@ chcp 936 >nul
 set "action=%~1"
 set "project_dir=%~2"
 set "server_name=%~3"
-set "server_model=%~4"
 set "db_name=%~3"
+
+::::服务器类型固定只有这几种，start / stop / status 执行时由玩家按序号选择
+::::顺序即 allserver 时的执行顺序，名字必须和 server_tool.sh 的 -m 取值一致（网关是 gateway，不是 gateserver）
+set "server_model_array[1]=allserver"
+set "server_model_array[2]=logserver"
+set "server_model_array[3]=dbserver"
+set "server_model_array[4]=gameserver"
+set "server_model_array[5]=loginserver"
+set "server_model_array[6]=gateway"
 
 :::::数据库类型固定只有两种，create / delete / clear / update 执行时由玩家按序号选择
 set "db_type_array[1]=dbserver"
@@ -101,13 +109,13 @@ exit /b !errorlevel!
 ::::用法
 ::::------------------------------------------------------------
 :print_usage
-echo 用法: %~nx0 ^<功能名^> ^<项目目录^> [服务器名/数据库名] [服务器类型]
+echo 用法: %~nx0 ^<功能名^> ^<项目目录^> [服务器名/数据库名]
 echo 可用功能:
 echo   build   - 编译：登录 WSL，进入「项目目录\server\skynet」用 sudo 执行 ./server_tool.sh -o build
 echo   rebuild - 重编：同上，-o rebuild
 echo   clean   - 清理：同上，-o clean
 echo   release - 发布：同上，-o release，发布成功后打开 TortoiseSVN 提交界面提交「项目目录\common\release\ubuntu」
-echo   start   - 开服：进入「项目目录\common\release\ubuntu」执行 -o start -m 类型 -n 服务器名 -s 服ID（服ID执行时输入），一次处理一个类型
+echo   start   - 开服：进入「项目目录\common\release\ubuntu」执行 -o start -m 类型 -n 服务器名 -s 服ID（类型和服ID执行时选择/输入），选 allserver 时逐个类型执行
 echo   stop    - 关服：同上，-o stop
 echo   status  - 查看：同上，-o status
 echo.
@@ -187,16 +195,15 @@ exit /b !errorlevel!
 call :check_release_skynet_dir
 if errorlevel 1 exit /b 1
 
+call :select_server_model
+if errorlevel 1 exit /b 1
+
 call :select_server_id
 if errorlevel 1 exit /b 1
 
 call :to_wsl_path "!skynet_dir!"
 
-::::命令交给 sshcall_wsl.bat 登录后执行；整体用双引号包住，命令里的两个与号不会被 cmd 当成命令分隔符
-::::sudo 加在 server_tool.sh 前面，不能加在 cd 前面（cd 是 shell 内建命令，sudo 找不到它）
-echo "[操作] 开服 服务器类型: !server_model!"
-set "ssh_commond=cd '!wsl_path!' && sudo ./server_tool.sh -o start -m !server_model! -n !server_name! -s !server_id!"
-call "%~dp0sshcall_wsl.bat" "!ssh_commond!"
+call :run_server_tool start 开服
 exit /b !errorlevel!
 
 ::::------------------------------------------------------------
@@ -206,14 +213,15 @@ exit /b !errorlevel!
 call :check_release_skynet_dir
 if errorlevel 1 exit /b 1
 
+call :select_server_model
+if errorlevel 1 exit /b 1
+
 call :select_server_id
 if errorlevel 1 exit /b 1
 
 call :to_wsl_path "!skynet_dir!"
 
-echo "[操作] 关服 服务器类型: !server_model!"
-set "ssh_commond=cd '!wsl_path!' && sudo ./server_tool.sh -o stop -m !server_model! -n !server_name! -s !server_id!"
-call "%~dp0sshcall_wsl.bat" "!ssh_commond!"
+call :run_server_tool stop 关服
 exit /b !errorlevel!
 
 ::::------------------------------------------------------------
@@ -223,13 +231,64 @@ exit /b !errorlevel!
 call :check_release_skynet_dir
 if errorlevel 1 exit /b 1
 
+call :select_server_model
+if errorlevel 1 exit /b 1
+
 call :select_server_id
 if errorlevel 1 exit /b 1
 
 call :to_wsl_path "!skynet_dir!"
 
-echo "[操作] 查看 服务器类型: !server_model!"
-set "ssh_commond=cd '!wsl_path!' && sudo ./server_tool.sh -o status -m !server_model! -n !server_name! -s !server_id!"
+call :run_server_tool status 查看
+exit /b !errorlevel!
+
+::::------------------------------------------------------------
+::::开服 / 关服 / 查看公共接口：让玩家选择服务器类型
+::::  出参: 变量 server_model，取值见 server_model_array
+::::------------------------------------------------------------
+:select_server_model
+echo 请选择服务器类型:
+echo   【1】!server_model_array[1]!
+echo   【2】!server_model_array[2]!
+echo   【3】!server_model_array[3]!
+echo   【4】!server_model_array[4]!
+echo   【5】!server_model_array[5]!
+echo   【6】!server_model_array[6]!
+choice /c 123456 /n /m "输入序号选择服务器类型: "
+
+::::choice 把选中的序号放在 errorlevel 里，借 for 做一次变量间接取值
+for %%i in (!errorlevel!) do set "server_model=!server_model_array[%%i]!"
+echo "[选择] 服务器类型: !server_model!"
+exit /b 0
+
+::::------------------------------------------------------------
+::::开服 / 关服 / 查看公共接口：执行 server_tool.sh
+::::  %~1=动作（start / stop / status），%~2=动作中文名（只用于日志）
+::::  依赖全局变量 server_model / wsl_path / server_name / server_id
+::::  选 allserver 时跳过 server_model_array[1] 自己，按数组顺序逐个类型执行，任意一次失败就中止
+::::------------------------------------------------------------
+:run_server_tool
+if /i "!server_model!"=="allserver" goto :run_server_tool_all
+
+call :exec_server_tool "%~1" "!server_model!" "%~2"
+exit /b !errorlevel!
+
+:run_server_tool_all
+for %%i in (2 3 4 5 6) do (
+    call :exec_server_tool "%~1" "!server_model_array[%%i]!" "%~2"
+    if errorlevel 1 exit /b !errorlevel!
+)
+exit /b 0
+
+::::------------------------------------------------------------
+::::开服 / 关服 / 查看公共接口：对单个服务器类型执行一次 server_tool.sh
+::::  %~1=动作（start / stop / status），%~2=服务器类型（-m），%~3=动作中文名（只用于日志）
+::::  命令交给 sshcall_wsl.bat 登录后执行；整体用双引号包住，命令里的两个与号不会被 cmd 当成命令分隔符
+::::  sudo 加在 server_tool.sh 前面，不能加在 cd 前面（cd 是 shell 内建命令，sudo 找不到它）
+::::------------------------------------------------------------
+:exec_server_tool
+echo "[操作] %~3 服务器类型: %~2"
+set "ssh_commond=cd '!wsl_path!' && sudo ./server_tool.sh -o %~1 -m %~2 -n !server_name! -s !server_id!"
 call "%~dp0sshcall_wsl.bat" "!ssh_commond!"
 exit /b !errorlevel!
 

@@ -143,79 +143,27 @@
                         Command="{Binding PublishCommand}" />
             </StackPanel>
 
-            <!-- 公共服 -->
-            <Grid Margin="0,0,0,8">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-
-                <TextBlock Text="公共服"
-                           Style="{StaticResource FieldLabelText}"
-                           Margin="0,0,10,0"
-                           VerticalAlignment="Center" />
-                <ComboBox Grid.Column="1"
-                          Width="180"
-                          Style="{StaticResource AppComboBox}"
-                          ItemsSource="{Binding PublicServers}"
-                          SelectedItem="{Binding SelectedPublicServer}" />
-                <StackPanel Grid.Column="2"
-                            Orientation="Horizontal"
-                            Margin="8,0,0,0">
-                    <Button Content="开服"
-                            Style="{StaticResource ActionButton}"
-                            MinWidth="64"
-                            Command="{Binding StartPublicServerCommand}" />
-                    <Button Content="关服"
-                            Style="{StaticResource ActionButton}"
-                            MinWidth="64"
-                            Margin="8,0,0,0"
-                            Command="{Binding StopPublicServerCommand}" />
-                    <Button Content="查看"
-                            Style="{StaticResource ActionButton}"
-                            MinWidth="64"
-                            Margin="8,0,0,0"
-                            Command="{Binding ViewPublicServerCommand}" />
-                </StackPanel>
-            </Grid>
-
-            <!-- 游戏服 -->
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-
+            <!-- 游戏服：服务器类型和服ID由脚本在控制台里让玩家选 -->
+            <StackPanel Orientation="Horizontal">
                 <TextBlock Text="游戏服"
                            Style="{StaticResource FieldLabelText}"
                            Margin="0,0,10,0"
                            VerticalAlignment="Center" />
-                <ComboBox Grid.Column="1"
-                          Width="180"
-                          Style="{StaticResource AppComboBox}"
-                          ItemsSource="{Binding GameServers}"
-                          SelectedItem="{Binding SelectedGameServer}" />
-                <StackPanel Grid.Column="2"
-                            Orientation="Horizontal"
-                            Margin="8,0,0,0">
-                    <Button Content="开服"
-                            Style="{StaticResource ActionButton}"
-                            MinWidth="64"
-                            Command="{Binding StartGameServerCommand}" />
-                    <Button Content="关服"
-                            Style="{StaticResource ActionButton}"
-                            MinWidth="64"
-                            Margin="8,0,0,0"
-                            Command="{Binding StopGameServerCommand}" />
-                    <Button Content="查看"
-                            Style="{StaticResource ActionButton}"
-                            MinWidth="64"
-                            Margin="8,0,0,0"
-                            Command="{Binding ViewGameServerCommand}" />
-                </StackPanel>
-            </Grid>
+                <Button Content="开服"
+                        Style="{StaticResource ActionButton}"
+                        MinWidth="64"
+                        Command="{Binding StartGameServerCommand}" />
+                <Button Content="关服"
+                        Style="{StaticResource ActionButton}"
+                        MinWidth="64"
+                        Margin="8,0,0,0"
+                        Command="{Binding StopGameServerCommand}" />
+                <Button Content="查看"
+                        Style="{StaticResource ActionButton}"
+                        MinWidth="64"
+                        Margin="8,0,0,0"
+                        Command="{Binding ViewGameServerCommand}" />
+            </StackPanel>
 
             <StackPanel Orientation="Horizontal"
                         HorizontalAlignment="Right"

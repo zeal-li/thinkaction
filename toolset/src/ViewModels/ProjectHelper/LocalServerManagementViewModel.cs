@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.IO;
 using System.Windows.Input;
 
@@ -28,29 +26,6 @@ namespace ToolSet.ViewModels.ProjectHelper
         private const string GameBasePortKey = "游戏基准端口";
         private const string LogServerPortKey = "日志服端口";
 
-        /// <summary>下拉框里的「全部」选项：选中它时对该下拉框里除它以外的所有服务器依次操作。</summary>
-        private const string AllServerOption = "allserver";
-
-        /// <summary>公共服下拉框的固定选项，顺序即界面展示顺序。</summary>
-        private static readonly string[] PublicServerOptions =
-        {
-            AllServerOption,
-            "logserver",
-        };
-
-        /// <summary>
-        /// 游戏服下拉框的固定选项，顺序即界面展示顺序，也是 allserver 时的执行顺序；
-        /// 名字必须和 server_tool.sh 的 -m 取值一致（网关是 gateway，不是 gateserver）。
-        /// </summary>
-        private static readonly string[] GameServerOptions =
-        {
-            AllServerOption,
-            "dbserver",
-            "loginserver",
-            "gateway",
-            "gameserver",
-        };
-
         private readonly IConfigService _config;
         private readonly IScriptExecutor _scripts;
         private readonly Dictionary<string, string> _savedValues = new Dictionary<string, string>();
@@ -58,8 +33,6 @@ namespace ToolSet.ViewModels.ProjectHelper
         private string _gameDatabase = string.Empty;
         private string _gameBasePort = string.Empty;
         private string _logServerPort = string.Empty;
-        private string? _selectedPublicServer;
-        private string? _selectedGameServer;
         private bool _hasPendingChanges;
         private bool _isLoading;
 
@@ -72,19 +45,6 @@ namespace ToolSet.ViewModels.ProjectHelper
         {
             _config = config;
             _scripts = scripts;
-
-            foreach (var server in PublicServerOptions)
-            {
-                PublicServers.Add(server);
-            }
-
-            foreach (var server in GameServerOptions)
-            {
-                GameServers.Add(server);
-            }
-
-            SelectedPublicServer = PublicServerOptions[0];
-            SelectedGameServer = GameServerOptions[0];
 
             CancelEditCommand = new RelayCommand(CancelEdit);
             ConfirmEditCommand = new RelayCommand(ConfirmEdit);
@@ -99,9 +59,6 @@ namespace ToolSet.ViewModels.ProjectHelper
             RebuildCommand = new RelayCommand(Rebuild);
             CleanCommand = new RelayCommand(Clean);
             PublishCommand = new RelayCommand(Publish);
-            StartPublicServerCommand = new RelayCommand(StartPublicServer);
-            StopPublicServerCommand = new RelayCommand(StopPublicServer);
-            ViewPublicServerCommand = new RelayCommand(ViewPublicServer);
             StartGameServerCommand = new RelayCommand(StartGameServer);
             StopGameServerCommand = new RelayCommand(StopGameServer);
             ViewGameServerCommand = new RelayCommand(ViewGameServer);
@@ -162,26 +119,6 @@ namespace ToolSet.ViewModels.ProjectHelper
         }
 
 
-        /// <summary>公共服下拉框的选项。</summary>
-        public ObservableCollection<string> PublicServers { get; } = new ObservableCollection<string>();
-
-        /// <summary>游戏服下拉框的选项。</summary>
-        public ObservableCollection<string> GameServers { get; } = new ObservableCollection<string>();
-
-        /// <summary>公共服下拉框里当前选中的服务器。</summary>
-        public string? SelectedPublicServer
-        {
-            get => _selectedPublicServer;
-            set => SetProperty(ref _selectedPublicServer, value);
-        }
-
-        /// <summary>游戏服下拉框里当前选中的服务器。</summary>
-        public string? SelectedGameServer
-        {
-            get => _selectedGameServer;
-            set => SetProperty(ref _selectedGameServer, value);
-        }
-
         /// <summary>查询（功能待定）。</summary>
         public ICommand QueryCommand { get; }
 
@@ -215,22 +152,13 @@ namespace ToolSet.ViewModels.ProjectHelper
         /// <summary>发布：在 WSL 里执行 ./server_tool.sh -o release，成功后打开 Svn 提交界面。</summary>
         public ICommand PublishCommand { get; }
 
-        /// <summary>公共服开服：对下拉框选中的服务器逐个串行执行 server_tool.sh -o start（选 allserver 时是除 allserver 外的全部）。</summary>
-        public ICommand StartPublicServerCommand { get; }
-
-        /// <summary>公共服关服：对下拉框选中的服务器逐个串行执行 server_tool.sh -o stop。</summary>
-        public ICommand StopPublicServerCommand { get; }
-
-        /// <summary>公共服查看：对下拉框选中的服务器逐个串行执行 server_tool.sh -o status。</summary>
-        public ICommand ViewPublicServerCommand { get; }
-
-        /// <summary>游戏服开服：对下拉框选中的服务器逐个串行执行 server_tool.sh -o start。</summary>
+        /// <summary>游戏服开服：执行 server_tool.sh -o start，服务器类型和服ID在控制台里让玩家选。</summary>
         public ICommand StartGameServerCommand { get; }
 
-        /// <summary>游戏服关服：对下拉框选中的服务器逐个串行执行 server_tool.sh -o stop。</summary>
+        /// <summary>游戏服关服：执行 server_tool.sh -o stop，服务器类型和服ID在控制台里让玩家选。</summary>
         public ICommand StopGameServerCommand { get; }
 
-        /// <summary>游戏服查看：对下拉框选中的服务器逐个串行执行 server_tool.sh -o status。</summary>
+        /// <summary>游戏服查看：执行 server_tool.sh -o status，服务器类型和服ID在控制台里让玩家选。</summary>
         public ICommand ViewGameServerCommand { get; }
 
         /// <summary>顶部切换项目后，按新项目的配置重新加载（未确认的修改丢弃）。</summary>
@@ -368,14 +296,6 @@ namespace ToolSet.ViewModels.ProjectHelper
                 action, CurrentProjectDir);
 
         /// <summary>
-        /// 开服 / 关服 / 查看的参数：功能名、项目目录、服务器名、服务器类型。
-        /// 服务器名对应 server_tool.sh 的 -n，用配置里已确认的「游戏数据库」；
-        /// 服ID（-s）不走参数，由脚本在控制台里让玩家输入。
-        /// </summary>
-        private string[] ServerControlArguments(string action, string serverModel)
-            => new[] { action, CurrentProjectDir, ConfirmedGameDatabase, serverModel };
-
-        /// <summary>
         /// 当前选中项目的「检出根目录\项目名」，脚本到它下面的 server\skynet（编译/发布）
         /// 或 common\release\ubuntu（开服/关服/查看）找 server_tool.sh。
         /// </summary>
@@ -391,56 +311,21 @@ namespace ToolSet.ViewModels.ProjectHelper
             }
         }
 
-        private void StartPublicServer() => RunServerToolEach("start", PublicServers, SelectedPublicServer);
+        private void StartGameServer() => RunServerControl("start");
 
-        private void StopPublicServer() => RunServerToolEach("stop", PublicServers, SelectedPublicServer);
+        private void StopGameServer() => RunServerControl("stop");
 
-        private void ViewPublicServer() => RunServerToolEach("status", PublicServers, SelectedPublicServer);
-
-        private void StartGameServer() => RunServerToolEach("start", GameServers, SelectedGameServer);
-
-        private void StopGameServer() => RunServerToolEach("stop", GameServers, SelectedGameServer);
-
-        private void ViewGameServer() => RunServerToolEach("status", GameServers, SelectedGameServer);
+        private void ViewGameServer() => RunServerControl("status");
 
         /// <summary>
-        /// 对下拉框里选中的服务器逐个调用脚本：选的是 allserver 时按下拉框顺序展开成除 allserver 外的所有类型，
-        /// 每个类型单独调用一次 local_server_operate.bat，同一个窗口里串行跑（后一个等前一个退出，前一个失败就中止）。
+        /// 开服 / 关服 / 查看统一走 scripts/local_server_operate.bat：只传功能名、项目目录和服务器名
+        /// （对应 server_tool.sh 的 -n，用配置里已确认的「游戏数据库」），
+        /// 服务器类型（-m）和服ID（-s）由脚本在控制台里让玩家选，选 allserver 时脚本自己逐个类型执行。
         /// </summary>
-        private void RunServerToolEach(string action, IEnumerable<string> options, string? selected)
-        {
-            var calls = new List<string[]>();
-            foreach (var serverModel in SelectedServerModels(options, selected))
-            {
-                calls.Add(ServerControlArguments(action, serverModel));
-            }
-
-            _scripts.RunInConsoleSequential(AppScripts.GetScriptPath(ServerScriptFileName), calls);
-        }
-
-        /// <summary>
-        /// 取要操作的服务器类型：选的是 allserver 时展开成该下拉框里除 allserver 外的所有类型（按下拉框顺序），
-        /// 否则只取选中的那个。
-        /// </summary>
-        private static List<string> SelectedServerModels(IEnumerable<string> options, string? selected)
-        {
-            var selectAll = string.Equals(selected, AllServerOption, StringComparison.OrdinalIgnoreCase);
-            var models = new List<string>();
-
-            foreach (var option in options)
-            {
-                if (string.Equals(option, AllServerOption, StringComparison.OrdinalIgnoreCase))
-                {
-                    continue;
-                }
-
-                if (selectAll || string.Equals(option, selected, StringComparison.OrdinalIgnoreCase))
-                {
-                    models.Add(option);
-                }
-            }
-
-            return models;
-        }
+        /// <param name="action">脚本功能名：start / stop / status。</param>
+        private void RunServerControl(string action)
+            => _scripts.RunInConsole(
+                AppScripts.GetScriptPath(ServerScriptFileName),
+                action, CurrentProjectDir, ConfirmedGameDatabase);
     }
 }
