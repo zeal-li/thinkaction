@@ -277,7 +277,7 @@ namespace ToolSet.ViewModels.ProjectHelper
         /// 数据库类型由脚本自己在控制台里让玩家选（1=dbserver，2=logserver）。
         /// </summary>
         /// <param name="action">脚本功能名：db_create / db_delete / db_clear / db_update。</param>
-        /// <param name="databaseName">库名中间那段，如 lizexian；脚本里再按类型和服ID拼成 dbserver_lizexian_1 / logserver_lizexian。</param>
+        /// <param name="databaseName">库名中间那段，如 lizexian；脚本里再按类型和服ID拼成 dbserver_lizexian_1 / logserver_lizexian_1。</param>
         private void RunDatabaseAction(string action, string databaseName)
             => _scripts.RunInConsole(
                 AppScripts.GetScriptPath(ServerScriptFileName),

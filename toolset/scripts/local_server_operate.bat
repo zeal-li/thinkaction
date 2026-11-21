@@ -14,7 +14,7 @@ chcp 936 >nul
 :::::------------------------------------------------------------
 :::::数据库操作：对本地 Windows MySQL 执行命令
 :::::  功能名: db_create（建库）/ db_delete（删库）/ db_clear（清档）/ db_update（更新）
-:::::  第3参数只传中间那段库名（如 lizexian），实际库名按类型拼: dbserver_<数据库名>_<服ID> / logserver_<数据库名>
+:::::  第3参数只传中间那段库名（如 lizexian），实际库名按类型拼: <数据库类型>_<数据库名>_<服ID>
 :::::  SQL 取「项目目录\common\sql」下的 <数据库类型>_table.sql（db_create）或 <数据库类型>_change.sql（db_update），db_clear 不需要 SQL 文件
 :::::  连接信息取 exe 同级 config\config.json 的「环境部署/Local_MySql_配置」（dirpath / hostname / port / username / password）
 :::::  例: local_server_operate.bat db_create C:\data\ikun_01_cn lizexian
@@ -126,7 +126,7 @@ echo   db_delete  - 删库：删除「实际库名」
 echo   db_clear   - 清档：保留库和表结构，清空「实际库名」里所有表的数据（TRUNCATE TABLE，不需要 SQL 文件）
 echo   db_update  - 更新：导入 ^<数据库类型^>_change.sql
 echo 数据库操作用 第3参数=数据库名，数据库类型和服ID执行时输入（1=!db_type_array[1]!，2=!db_type_array[2]!）:
-echo 实际库名按类型拼: dbserver_^<数据库名^>_^<服ID^> / logserver_^<数据库名^>
+echo 实际库名按类型拼: ^<数据库类型^>_^<数据库名^>_^<服ID^>
 echo   %~nx0 db_create C:\data\ikun_01_cn lizexian
 exit /b 0
 
@@ -539,7 +539,7 @@ exit /b !errorlevel!
 
 
 :::::------------------------------------------------------------
-:::::数据库操作公共接口：让玩家选择数据库类型（1=logserver，2=dbserver）
+:::::数据库操作公共接口：让玩家选择数据库类型（1=dbserver，2=logserver）
 :::::  出参: 变量 db_type
 :::::------------------------------------------------------------
 :select_db_type
@@ -557,16 +557,11 @@ exit /b 0
 
 :::::------------------------------------------------------------
 :::::数据库操作公共接口：按类型和服ID把 db_name 拼成实际库名（就地改写 db_name）
-:::::  dbserver -> dbserver_<数据库名>_<服ID>，logserver -> logserver_<数据库名>
-:::::  与 config_global_vars.sh 的 DBSERVER_MYSQL_DBNAME=dbserver_%s_%d / LOGSERVER_MYSQL_DBNAME=logserver_%s 一致
+:::::  统一拼接: <数据库类型>_<数据库名>_<服ID>，如 dbserver_lizexian_1 / logserver_lizexian_1
 :::::  入参: 全局变量 db_type / db_name / server_id
 :::::------------------------------------------------------------
 :compose_db_name
-if /i "!db_type!"=="logserver" (
-    set "db_name=!db_type!_!db_name!"
-) else (
-    set "db_name=!db_type!_!db_name!_!server_id!"
-)
+set "db_name=!db_type!_!db_name!_!server_id!"
 echo "[库名] !db_name!"
 exit /b 0
 
