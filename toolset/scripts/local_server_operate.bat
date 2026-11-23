@@ -142,7 +142,7 @@ echo   db_delete  - 删库：删除「实际库名」
 echo   db_clear   - 清档：保留库和表结构，清空「实际库名」里所有表的数据（TRUNCATE TABLE，不需要 SQL 文件）
 echo   db_update  - 更新：导入 ^<数据库类型^>_change.sql
 echo   db_query   - 查询：列出所有数据库，按 数据库名 模糊匹配并打印匹配到的库名（不选类型和服ID）
-echo   db_export  - 导出：预留接口，功能待实现
+echo   db_export  - 导出：用 mysqldump 把「实际库名」的表结构和数据导到 项目目录\common\sql\backup\^<实际库名^>_^<yyyyMMddHHmm^>.sql
 echo   db_import  - 导入：预留接口，功能待实现
 echo 数据库操作用 第3参数=数据库名，数据库类型和服ID执行时输入（1=!db_type_array[1]!，2=!db_type_array[2]!）:
 echo 实际库名按类型拼: ^<数据库类型^>_^<数据库名^>_^<服ID^>
@@ -574,13 +574,46 @@ if errorlevel 1 (
 exit /b 0
 
 :::::------------------------------------------------------------
-:::::db_export：导出（预留接口，功能待实现）
-:::::  调用约定与 db_create / db_update 一致：第2参数=项目目录，第3参数=库名中间段
-:::::  实际库名: <数据库类型>_<数据库名>_<服ID>，数据库类型和服ID 后续在这里让玩家选
+:::::db_export：导出，用 mysqldump 把「实际库名」的表结构和数据导到 项目目录\common\sql\backup
+:::::  文件名: <实际库名>_<yyyyMMddHHmm>.sql，如 dbserver_lizexian_1_202611231155.sql
+:::::  调用约定与 db_create / db_update 一致：第2参数=项目目录，第3参数=库名中间段，类型和服ID执行时选
 :::::------------------------------------------------------------
 :export_database
-echo [预留] 导出功能待实现: db_export ^<项目目录^> ^<数据库名^>
-exit /b 1
+call :mysql_check_args
+if errorlevel 1 exit /b 1
+
+call :select_db_type
+call :select_server_id
+if errorlevel 1 exit /b 1
+
+call :compose_db_name
+
+set "mysqldump_exe=!mysql_dirpath!\bin\mysqldump.exe"
+if not exist "!mysqldump_exe!" (
+    echo [错误] 未找到 mysqldump.exe: !mysqldump_exe!
+    exit /b 1
+)
+
+call :get_datetime_stamp
+if errorlevel 1 exit /b 1
+
+set "backup_dir=!project_dir!\common\sql\backup"
+if not exist "!backup_dir!" mkdir "!backup_dir!"
+set "backup_file=!backup_dir!\!db_name!_!datetime_stamp!.sql"
+
+call :mysql_database_exists
+if errorlevel 1 (
+    echo [错误] 数据库不存在: !db_name!
+    exit /b 1
+)
+
+echo "[导出] 表结构和数据: !db_name! -> !backup_file!"
+"!mysqldump_exe!" -h!mysql_hostname! -P!mysql_port! -u!mysql_username! -p!mysql_password! --result-file="!backup_file!" !db_name!
+if errorlevel 1 (
+    echo [错误] 导出失败: !backup_file!
+    exit /b 1
+)
+exit /b 0
 
 :::::------------------------------------------------------------
 :::::db_import：导入（预留接口，功能待实现）
@@ -617,6 +650,20 @@ exit /b 0
 :compose_db_name
 set "db_name=!db_type!_!db_name!_!server_id!"
 echo "[库名] !db_name!"
+exit /b 0
+
+:::::------------------------------------------------------------
+:::::公共接口：取当前时间戳 yyyyMMddHHmm，如 202611231155，用于备份文件名
+:::::  %date% / %time% 跟着系统区域格式走，这里用 PowerShell 输出固定格式，不解析本地格式
+:::::  出参: 变量 datetime_stamp
+:::::------------------------------------------------------------
+:get_datetime_stamp
+set "datetime_stamp="
+for /f "usebackq delims=" %%i in (`powershell -NoProfile -Command "Get-Date -Format yyyyMMddHHmm"`) do set "datetime_stamp=%%i"
+if "!datetime_stamp!"=="" (
+    echo [错误] 获取当前时间戳失败
+    exit /b 1
+)
 exit /b 0
 
 :::::------------------------------------------------------------

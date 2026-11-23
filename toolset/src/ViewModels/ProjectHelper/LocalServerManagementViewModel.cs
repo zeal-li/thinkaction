@@ -134,7 +134,7 @@ namespace ToolSet.ViewModels.ProjectHelper
         /// <summary>更新：导入 common\sql\&lt;数据库类型&gt;_change.sql，类型在控制台里选。</summary>
         public ICommand UpdateCommand { get; }
 
-        /// <summary>导出：调 local_server_operate.bat db_export（脚本侧预留接口，功能待实现）。</summary>
+        /// <summary>导出：调 local_server_operate.bat db_export，用 mysqldump 把表结构和数据导到 common\sql\backup。</summary>
         public ICommand ExportCommand { get; }
 
         /// <summary>导入：调 local_server_operate.bat db_import（脚本侧预留接口，功能待实现）。</summary>
@@ -252,7 +252,7 @@ namespace ToolSet.ViewModels.ProjectHelper
         /// <summary>更新：调 local_server_operate.bat db_update，导入 common\sql\&lt;数据库类型&gt;_change.sql。</summary>
         private void Update() => RunDatabaseAction("db_update", ConfirmedGameDatabase);
 
-        /// <summary>导出：调 local_server_operate.bat db_export（脚本侧预留，功能待实现）。</summary>
+        /// <summary>导出：调 local_server_operate.bat db_export，用 mysqldump 把实际库的表结构和数据导到 common\sql\backup。</summary>
         private void Export() => RunDatabaseAction("db_export", ConfirmedGameDatabase);
 
         /// <summary>导入：调 local_server_operate.bat db_import（脚本侧预留，功能待实现）。</summary>
