@@ -14,6 +14,7 @@ chcp 936 >nul
 :::::------------------------------------------------------------
 :::::数据库操作：对本地 Windows MySQL 执行命令
 :::::  功能名: db_create（建库）/ db_delete（删库）/ db_clear（清档）/ db_update（更新）
+:::::       db_query（查询）/ db_export（导出）/ db_import（导入）: 预留接口，功能待实现
 :::::  第3参数只传中间那段库名（如 lizexian），实际库名按类型拼: <数据库类型>_<数据库名>_<服ID>
 :::::  SQL 取「项目目录\common\sql」下的 <数据库类型>_table.sql（db_create）或 <数据库类型>_change.sql（db_update），db_clear 不需要 SQL 文件
 :::::  连接信息取 exe 同级 config\config.json 的「环境部署/Local_MySql_配置」（dirpath / hostname / port / username / password）
@@ -99,6 +100,21 @@ if /i "!action!"=="db_update" (
     goto :finish
 )
 
+if /i "!action!"=="db_query" (
+    call :query_database
+    goto :finish
+)
+
+if /i "!action!"=="db_export" (
+    call :export_database
+    goto :finish
+)
+
+if /i "!action!"=="db_import" (
+    call :import_database
+    goto :finish
+)
+
 echo [错误] 未定义的功能: !action!
 call :print_usage
 exit /b 1
@@ -125,6 +141,9 @@ echo   db_create  - 建库：建「实际库名」，再导入 ^<数据库类型^>_table.sql
 echo   db_delete  - 删库：删除「实际库名」
 echo   db_clear   - 清档：保留库和表结构，清空「实际库名」里所有表的数据（TRUNCATE TABLE，不需要 SQL 文件）
 echo   db_update  - 更新：导入 ^<数据库类型^>_change.sql
+echo   db_query   - 查询：预留接口，功能待实现
+echo   db_export  - 导出：预留接口，功能待实现
+echo   db_import  - 导入：预留接口，功能待实现
 echo 数据库操作用 第3参数=数据库名，数据库类型和服ID执行时输入（1=!db_type_array[1]!，2=!db_type_array[2]!）:
 echo 实际库名按类型拼: ^<数据库类型^>_^<数据库名^>_^<服ID^>
 echo   %~nx0 db_create C:\data\ikun_01_cn lizexian
@@ -712,3 +731,31 @@ call :mysql_import "!mysql_truncate_tmp!"
 set "mysql_truncate_result=!errorlevel!"
 del /q "!mysql_tables_tmp!" "!mysql_truncate_tmp!" >nul 2>nul
 exit /b !mysql_truncate_result!
+
+
+::::------------------------------------------------------------
+::::db_query：查询（预留接口，功能待实现）
+::::  调用约定与 db_create / db_update 一致：第2参数=项目目录，第3参数=库名中间段
+::::  实际库名: <数据库类型>_<数据库名>_<服ID>，数据库类型和服ID 后续在这里让玩家选
+::::------------------------------------------------------------
+:query_database
+echo [预留] 查询功能待实现: db_query ^<项目目录^> ^<数据库名^>
+exit /b 1
+
+::::------------------------------------------------------------
+::::db_export：导出（预留接口，功能待实现）
+::::  调用约定与 db_create / db_update 一致：第2参数=项目目录，第3参数=库名中间段
+::::  实际库名: <数据库类型>_<数据库名>_<服ID>，数据库类型和服ID 后续在这里让玩家选
+::::------------------------------------------------------------
+:export_database
+echo [预留] 导出功能待实现: db_export ^<项目目录^> ^<数据库名^>
+exit /b 1
+
+::::------------------------------------------------------------
+::::db_import：导入（预留接口，功能待实现）
+::::  调用约定与 db_create / db_update 一致：第2参数=项目目录，第3参数=库名中间段
+::::  实际库名: <数据库类型>_<数据库名>_<服ID>，数据库类型和服ID 后续在这里让玩家选
+::::------------------------------------------------------------
+:import_database
+echo [预留] 导入功能待实现: db_import ^<项目目录^> ^<数据库名^>
+exit /b 1

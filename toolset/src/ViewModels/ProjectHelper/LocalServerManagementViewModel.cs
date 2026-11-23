@@ -119,7 +119,7 @@ namespace ToolSet.ViewModels.ProjectHelper
         }
 
 
-        /// <summary>查询（功能待定）。</summary>
+        /// <summary>查询：调 local_server_operate.bat db_query（脚本侧预留接口，功能待实现）。</summary>
         public ICommand QueryCommand { get; }
 
         /// <summary>创建：建「游戏数据库」，再导入 common\sql\&lt;数据库类型&gt;_table.sql，类型在控制台里选。</summary>
@@ -134,10 +134,10 @@ namespace ToolSet.ViewModels.ProjectHelper
         /// <summary>更新：导入 common\sql\&lt;数据库类型&gt;_change.sql，类型在控制台里选。</summary>
         public ICommand UpdateCommand { get; }
 
-        /// <summary>导出（功能待定）。</summary>
+        /// <summary>导出：调 local_server_operate.bat db_export（脚本侧预留接口，功能待实现）。</summary>
         public ICommand ExportCommand { get; }
 
-        /// <summary>导入（功能待定）。</summary>
+        /// <summary>导入：调 local_server_operate.bat db_import（脚本侧预留接口，功能待实现）。</summary>
         public ICommand ImportCommand { get; }
 
         /// <summary>编译：在 WSL 里执行 ./server_tool.sh -o build。</summary>
@@ -234,9 +234,8 @@ namespace ToolSet.ViewModels.ProjectHelper
         /// </summary>
         private string ConfirmedGameDatabase => ReadValue(GameDatabaseKey);
 
-        private void Query()
-        {
-        }
+        /// <summary>查询：调 local_server_operate.bat db_query（脚本侧预留，功能待实现）。</summary>
+        private void Query() => RunDatabaseAction("db_query", ConfirmedGameDatabase);
 
         /// <summary>
         /// 创建：调 local_server_operate.bat db_create，传项目目录和「游戏数据库」，
@@ -253,13 +252,11 @@ namespace ToolSet.ViewModels.ProjectHelper
         /// <summary>更新：调 local_server_operate.bat db_update，导入 common\sql\&lt;数据库类型&gt;_change.sql。</summary>
         private void Update() => RunDatabaseAction("db_update", ConfirmedGameDatabase);
 
-        private void Export()
-        {
-        }
+        /// <summary>导出：调 local_server_operate.bat db_export（脚本侧预留，功能待实现）。</summary>
+        private void Export() => RunDatabaseAction("db_export", ConfirmedGameDatabase);
 
-        private void Import()
-        {
-        }
+        /// <summary>导入：调 local_server_operate.bat db_import（脚本侧预留，功能待实现）。</summary>
+        private void Import() => RunDatabaseAction("db_import", ConfirmedGameDatabase);
 
         private void Build() => RunServerTool("build");
 
@@ -273,7 +270,7 @@ namespace ToolSet.ViewModels.ProjectHelper
         /// 数据库操作统一走 scripts/local_server_operate.bat：功能名、项目目录、数据库名，
         /// 数据库类型由脚本自己在控制台里让玩家选（1=dbserver，2=logserver）。
         /// </summary>
-        /// <param name="action">脚本功能名：db_create / db_delete / db_clear / db_update。</param>
+        /// <param name="action">脚本功能名：db_create / db_delete / db_clear / db_update / db_query / db_export / db_import。</param>
         /// <param name="databaseName">库名中间那段，如 lizexian；脚本里再按类型和服ID拼成 dbserver_lizexian_1 / logserver_lizexian_1。</param>
         private void RunDatabaseAction(string action, string databaseName)
             => _scripts.RunInConsole(
