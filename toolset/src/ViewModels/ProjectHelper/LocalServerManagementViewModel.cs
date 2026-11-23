@@ -137,7 +137,7 @@ namespace ToolSet.ViewModels.ProjectHelper
         /// <summary>导出：调 local_server_operate.bat db_export，用 mysqldump 把表结构和数据导到 common\sql\backup。</summary>
         public ICommand ExportCommand { get; }
 
-        /// <summary>导入：调 local_server_operate.bat db_import（脚本侧预留接口，功能待实现）。</summary>
+        /// <summary>导入：调 local_server_operate.bat db_import，把 common\sql\backup 下的备份文件导入实际库。</summary>
         public ICommand ImportCommand { get; }
 
         /// <summary>编译：在 WSL 里执行 ./server_tool.sh -o build。</summary>
@@ -255,7 +255,7 @@ namespace ToolSet.ViewModels.ProjectHelper
         /// <summary>导出：调 local_server_operate.bat db_export，用 mysqldump 把实际库的表结构和数据导到 common\sql\backup。</summary>
         private void Export() => RunDatabaseAction("db_export", ConfirmedGameDatabase);
 
-        /// <summary>导入：调 local_server_operate.bat db_import（脚本侧预留，功能待实现）。</summary>
+        /// <summary>导入：调 local_server_operate.bat db_import，选服务器并输入 common\sql\backup 下的备份文件名后导入实际库。</summary>
         private void Import() => RunDatabaseAction("db_import", ConfirmedGameDatabase);
 
         private void Build() => RunServerTool("build");

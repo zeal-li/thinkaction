@@ -143,7 +143,7 @@ echo   db_clear   - 清档：保留库和表结构，清空「实际库名」里所有表的数据（TRUNCA
 echo   db_update  - 更新：导入 ^<数据库类型^>_change.sql
 echo   db_query   - 查询：列出所有数据库，按 数据库名 模糊匹配并打印匹配到的库名（不选类型和服ID）
 echo   db_export  - 导出：用 mysqldump 把「实际库名」的表结构和数据导到 项目目录\common\sql\backup\^<实际库名^>_^<yyyyMMddHHmm^>.sql
-echo   db_import  - 导入：预留接口，功能待实现
+echo   db_import  - 导入：选服务器后输入 项目目录\common\sql\backup 下的备份文件名，导入「实际库名」
 echo 数据库操作用 第3参数=数据库名，数据库类型和服ID执行时输入（1=!db_type_array[1]!，2=!db_type_array[2]!）:
 echo 实际库名按类型拼: ^<数据库类型^>_^<数据库名^>_^<服ID^>
 echo   %~nx0 db_create C:\data\ikun_01_cn lizexian
@@ -616,13 +616,29 @@ if errorlevel 1 (
 exit /b 0
 
 :::::------------------------------------------------------------
-:::::db_import：导入（预留接口，功能待实现）
-:::::  调用约定与 db_create / db_update 一致：第2参数=项目目录，第3参数=库名中间段
-:::::  实际库名: <数据库类型>_<数据库名>_<服ID>，数据库类型和服ID 后续在这里让玩家选
+:::::db_import：导入，选服务器后把 项目目录\common\sql\backup 下的备份文件导进「实际库名」
+:::::  调用约定与 db_create / db_update 一致：第2参数=项目目录，第3参数=库名中间段，类型和服ID执行时选
+:::::  备份文件名执行时输入（只填文件名，不带目录）
 :::::------------------------------------------------------------
 :import_database
-echo [预留] 导入功能待实现: db_import ^<项目目录^> ^<数据库名^>
-exit /b 1
+call :mysql_check_args
+if errorlevel 1 exit /b 1
+
+call :select_db_type
+call :select_server_id
+if errorlevel 1 exit /b 1
+
+call :compose_db_name
+
+set /p "backup_file_name=请输入备份文件名（common\sql\backup 下，如 dbserver_lizexian_1_202611231155.sql）: "
+set "backup_file=!project_dir!\common\sql\backup\!backup_file_name!"
+if not exist "!backup_file!" (
+    echo [错误] 未找到备份文件: !backup_file!
+    exit /b 1
+)
+
+call :mysql_import "!backup_file!"
+exit /b !errorlevel!
 
 
 :::::------------------------------------------------------------
