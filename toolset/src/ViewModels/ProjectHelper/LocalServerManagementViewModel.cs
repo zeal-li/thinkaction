@@ -119,7 +119,7 @@ namespace ToolSet.ViewModels.ProjectHelper
         }
 
 
-        /// <summary>查询：调 local_server_operate.bat db_query（脚本侧预留接口，功能待实现）。</summary>
+        /// <summary>查询：调 local_server_operate.bat db_query，按「游戏数据库」模糊匹配并打印匹配到的实际库名。</summary>
         public ICommand QueryCommand { get; }
 
         /// <summary>创建：建「游戏数据库」，再导入 common\sql\&lt;数据库类型&gt;_table.sql，类型在控制台里选。</summary>
@@ -234,7 +234,7 @@ namespace ToolSet.ViewModels.ProjectHelper
         /// </summary>
         private string ConfirmedGameDatabase => ReadValue(GameDatabaseKey);
 
-        /// <summary>查询：调 local_server_operate.bat db_query（脚本侧预留，功能待实现）。</summary>
+        /// <summary>查询：调 local_server_operate.bat db_query，列出所有库并按「游戏数据库」模糊匹配，打印匹配到的库名。</summary>
         private void Query() => RunDatabaseAction("db_query", ConfirmedGameDatabase);
 
         /// <summary>

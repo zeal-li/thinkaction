@@ -141,7 +141,7 @@ echo   db_create  - 建库：建「实际库名」，再导入 ^<数据库类型^>_table.sql
 echo   db_delete  - 删库：删除「实际库名」
 echo   db_clear   - 清档：保留库和表结构，清空「实际库名」里所有表的数据（TRUNCATE TABLE，不需要 SQL 文件）
 echo   db_update  - 更新：导入 ^<数据库类型^>_change.sql
-echo   db_query   - 查询：预留接口，功能待实现
+echo   db_query   - 查询：列出所有数据库，按 数据库名 模糊匹配并打印匹配到的库名（不选类型和服ID）
 echo   db_export  - 导出：预留接口，功能待实现
 echo   db_import  - 导入：预留接口，功能待实现
 echo 数据库操作用 第3参数=数据库名，数据库类型和服ID执行时输入（1=!db_type_array[1]!，2=!db_type_array[2]!）:
@@ -557,13 +557,21 @@ call :mysql_import "!mysql_sql_file!"
 exit /b !errorlevel!
 
 :::::------------------------------------------------------------
-:::::db_query：查询（预留接口，功能待实现）
-:::::  调用约定与 db_create / db_update 一致：第2参数=项目目录，第3参数=库名中间段
-:::::  实际库名: <数据库类型>_<数据库名>_<服ID>，数据库类型和服ID 后续在这里让玩家选
+:::::db_query：查询，列出所有数据库并按库名模糊匹配，打印匹配到的数据库名
+:::::  调用约定与其它数据库操作一致：第2参数=项目目录，第3参数=库名中间段（模糊匹配用）
+:::::  例: db_query C:\data\ikun_01_cn lizexian 匹配出 dbserver_lizexian_1 / logserver_lizexian_1
 :::::------------------------------------------------------------
 :query_database
-echo [预留] 查询功能待实现: db_query ^<项目目录^> ^<数据库名^>
-exit /b 1
+call :mysql_check_args
+if errorlevel 1 exit /b 1
+
+echo "[查询] 模糊匹配数据库名: !db_name!"
+"!mysql_exe!" -h!mysql_hostname! -P!mysql_port! -u!mysql_username! -p!mysql_password! -N -B -e "SHOW DATABASES LIKE '%%!db_name!%%';"
+if errorlevel 1 (
+    echo [错误] 查询数据库失败: !db_name!
+    exit /b 1
+)
+exit /b 0
 
 :::::------------------------------------------------------------
 :::::db_export：导出（预留接口，功能待实现）
