@@ -536,10 +536,10 @@ call :mysql_truncate_tables
 exit /b !errorlevel!
 
 :::::------------------------------------------------------------
-:::::db_update：更新，用「项目目录\common\sql\mysqldiff\.venv」里的 python 跑同目录的 mysqldiff.py，
+:::::db_update：更新，调「项目目录\common\sql\mysqldiff\dist\mysqldiff.exe」，
 :::::           对比「实际库名」当前结构和 <数据库类型>_table.sql，生成差异 SQL 后执行到「实际库名」
 :::::  调用约定与 db_create / db_delete 一致：第2参数=项目目录，第3参数=库名中间段，类型和服ID执行时选
-:::::  mysqldiff.py 用 -d file 模式比两个 SQL 文件：先把实际库当前结构用 mysqldump --no-data 导出成文件，
+:::::  mysqldiff.exe 用 -d file 模式比两个 SQL 文件：先把实际库当前结构用 mysqldump --no-data 导出成文件，
 :::::  再 -s=table.sql（参考结构）-t=当前结构文件 -o=差异 SQL，对比完删两份临时文件
 :::::  退出码: 0=生成成功；非 0=生成失败，不执行更新
 :::::------------------------------------------------------------
@@ -560,14 +560,9 @@ if not exist "!mysql_sql_file!" (
 )
 
 set "mysqldiff_dir=!project_dir!\common\sql\mysqldiff"
-set "mysqldiff_script=!mysqldiff_dir!\mysqldiff.py"
-set "mysqldiff_python=!mysqldiff_dir!\.venv\Scripts\python.exe"
-if not exist "!mysqldiff_script!" (
-    echo [错误] 未找到差异脚本: !mysqldiff_script!
-    exit /b 1
-)
-if not exist "!mysqldiff_python!" (
-    echo [错误] 未找到差异脚本的虚拟环境: !mysqldiff_python!
+set "mysqldiff_exe=!mysqldiff_dir!\dist\mysqldiff.exe"
+if not exist "!mysqldiff_exe!" (
+    echo [错误] 未找到差异工具: !mysqldiff_exe!
     exit /b 1
 )
 
@@ -598,7 +593,7 @@ if errorlevel 1 (
 )
 
 echo "[对比] !mysql_sql_file! ^<--^> !db_name!"
-"!mysqldiff_python!" "!mysqldiff_script!" -d file -s "!mysql_sql_file!" -t "!mysql_structure_file!" -o "!mysql_diff_file!"
+"!mysqldiff_exe!" -d file -s "!mysql_sql_file!" -t "!mysql_structure_file!" -o "!mysql_diff_file!"
 set "mysqldiff_result=!errorlevel!"
 del /q "!mysql_structure_file!" >nul 2>nul
 if not "!mysqldiff_result!"=="0" (
