@@ -131,7 +131,7 @@ namespace ToolSet.ViewModels.ProjectHelper
         /// <summary>清档：保留库和表结构，清空实际库里所有表的数据。</summary>
         public ICommand ClearDataCommand { get; }
 
-        /// <summary>更新：导入 common\sql\&lt;数据库类型&gt;_change.sql，类型在控制台里选。</summary>
+        /// <summary>更新：调 common\sql\mysqldiff.py 对比实际库和 &lt;数据库类型&gt;_table.sql，生成差异 SQL 并执行。</summary>
         public ICommand UpdateCommand { get; }
 
         /// <summary>导出：调 local_server_operate.bat db_export，用 mysqldump 把表结构和数据导到 common\sql\backup。</summary>
@@ -249,7 +249,7 @@ namespace ToolSet.ViewModels.ProjectHelper
         /// <summary>清档：调 local_server_operate.bat db_clear，清空实际库所有表的数据（保留库和表结构）。</summary>
         private void ClearData() => RunDatabaseAction("db_clear", ConfirmedGameDatabase);
 
-        /// <summary>更新：调 local_server_operate.bat db_update，导入 common\sql\&lt;数据库类型&gt;_change.sql。</summary>
+        /// <summary>更新：调 local_server_operate.bat db_update，用 mysqldiff.py 对比实际库和 &lt;数据库类型&gt;_table.sql 并执行差异 SQL。</summary>
         private void Update() => RunDatabaseAction("db_update", ConfirmedGameDatabase);
 
         /// <summary>导出：调 local_server_operate.bat db_export，用 mysqldump 把实际库的表结构和数据导到 common\sql\backup。</summary>

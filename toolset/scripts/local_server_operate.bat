@@ -14,9 +14,10 @@ chcp 936 >nul
 :::::------------------------------------------------------------
 :::::数据库操作：对本地 Windows MySQL 执行命令
 :::::  功能名: db_create（建库）/ db_delete（删库）/ db_clear（清档）/ db_update（更新）
-:::::       db_query（查询）/ db_export（导出）/ db_import（导入）: 预留接口，功能待实现
+:::::       db_query（查询）/ db_export（导出）/ db_import（导入）
 :::::  第3参数只传中间那段库名（如 lizexian），实际库名按类型拼: <数据库类型>_<数据库名>_<服ID>
-:::::  SQL 取「项目目录\common\sql」下的 <数据库类型>_table.sql（db_create）或 <数据库类型>_change.sql（db_update），db_clear 不需要 SQL 文件
+:::::  SQL 取「项目目录\common\sql」下的 <数据库类型>_table.sql（db_create / db_update），db_clear 不需要 SQL 文件
+:::::  db_update 用「项目目录\common\sql\mysqldiff\.venv」里的 python 跑 mysqldiff.py，对比实际库结构和 <数据库类型>_table.sql 生成差异 SQL 再执行
 :::::  连接信息取 exe 同级 config\config.json 的「环境部署/Local_MySql_配置」（dirpath / hostname / port / username / password）
 :::::  例: local_server_operate.bat db_create C:\data\ikun_01_cn lizexian
 :::::------------------------------------------------------------
@@ -140,7 +141,7 @@ echo 数据库操作（本地 Windows MySQL，SQL 取 项目目录\common\sql）:
 echo   db_create  - 建库：建「实际库名」，再导入 ^<数据库类型^>_table.sql
 echo   db_delete  - 删库：删除「实际库名」
 echo   db_clear   - 清档：保留库和表结构，清空「实际库名」里所有表的数据（TRUNCATE TABLE，不需要 SQL 文件）
-echo   db_update  - 更新：导入 ^<数据库类型^>_change.sql
+echo   db_update  - 更新：用 common\sql\mysqldiff\.venv 里的 python 跑 mysqldiff.py，对比「实际库名」结构和 ^<数据库类型^>_table.sql，生成差异 SQL 并执行
 echo   db_query   - 查询：列出所有数据库，按 数据库名 模糊匹配并打印匹配到的库名（不选类型和服ID）
 echo   db_export  - 导出：用 mysqldump 把「实际库名」的表结构和数据导到 项目目录\common\sql\backup\^<实际库名^>_^<yyyyMMddHHmm^>.sql
 echo   db_import  - 导入：选服务器后输入 项目目录\common\sql\backup 下的备份文件名，导入「实际库名」
@@ -529,7 +530,12 @@ call :mysql_truncate_tables
 exit /b !errorlevel!
 
 :::::------------------------------------------------------------
-:::::db_update：导入「项目目录\common\sql\<数据库类型>_change.sql」
+:::::db_update：更新，用「项目目录\common\sql\mysqldiff\.venv」里的 python 跑同目录的 mysqldiff.py，
+:::::           对比「实际库名」当前结构和 <数据库类型>_table.sql，生成差异 SQL 后执行到「实际库名」
+:::::  调用约定与 db_create / db_delete 一致：第2参数=项目目录，第3参数=库名中间段，类型和服ID执行时选
+:::::  mysqldiff.py 用 -d file 模式比两个 SQL 文件：先把实际库当前结构用 mysqldump --no-data 导出成文件，
+:::::  再 -s=table.sql（参考结构）-t=当前结构文件 -o=差异 SQL，对比完删两份临时文件
+:::::  退出码: 0=生成成功；非 0=生成失败，不执行更新
 :::::------------------------------------------------------------
 :update_database
 call :mysql_check_args
@@ -541,9 +547,27 @@ if errorlevel 1 exit /b 1
 
 call :compose_db_name
 
-set "mysql_sql_file=!project_dir!\common\sql\!db_type!_change.sql"
+set "mysql_sql_file=!project_dir!\common\sql\!db_type!_table.sql"
 if not exist "!mysql_sql_file!" (
     echo [错误] 未找到 SQL 文件: !mysql_sql_file!
+    exit /b 1
+)
+
+set "mysqldiff_dir=!project_dir!\common\sql\mysqldiff"
+set "mysqldiff_script=!mysqldiff_dir!\mysqldiff.py"
+set "mysqldiff_python=!mysqldiff_dir!\.venv\Scripts\python.exe"
+if not exist "!mysqldiff_script!" (
+    echo [错误] 未找到差异脚本: !mysqldiff_script!
+    exit /b 1
+)
+if not exist "!mysqldiff_python!" (
+    echo [错误] 未找到差异脚本的虚拟环境: !mysqldiff_python!
+    exit /b 1
+)
+
+set "mysqldump_exe=!mysql_dirpath!\bin\mysqldump.exe"
+if not exist "!mysqldump_exe!" (
+    echo [错误] 未找到 mysqldump.exe: !mysqldump_exe!
     exit /b 1
 )
 
@@ -553,8 +577,42 @@ if errorlevel 1 (
     exit /b 1
 )
 
-call :mysql_import "!mysql_sql_file!"
-exit /b !errorlevel!
+if not exist "%~dp0tmp" mkdir "%~dp0tmp"
+set "mysql_diff_file=%~dp0tmp\local_server_db_update_diff.sql"
+set "mysql_structure_file=%~dp0tmp\local_server_db_update_current.sql"
+if exist "!mysql_diff_file!" del /q "!mysql_diff_file!" >nul 2>nul
+if exist "!mysql_structure_file!" del /q "!mysql_structure_file!" >nul 2>nul
+
+echo "[对比] 导出 !db_name! 当前表结构"
+"!mysqldump_exe!" -h!mysql_hostname! -P!mysql_port! -u!mysql_username! -p!mysql_password! --no-data --result-file="!mysql_structure_file!" !db_name!
+if errorlevel 1 (
+    del /q "!mysql_structure_file!" >nul 2>nul
+    echo [错误] 导出当前库结构失败
+    exit /b 1
+)
+
+echo "[对比] !mysql_sql_file! ^<--^> !db_name!"
+"!mysqldiff_python!" "!mysqldiff_script!" -d file -s "!mysql_sql_file!" -t "!mysql_structure_file!" -o "!mysql_diff_file!"
+set "mysqldiff_result=!errorlevel!"
+del /q "!mysql_structure_file!" >nul 2>nul
+if not "!mysqldiff_result!"=="0" (
+    del /q "!mysql_diff_file!" >nul 2>nul
+    echo [错误] 生成差异 SQL 失败，不执行更新
+    exit /b 1
+)
+
+findstr /i /c:"ALTER TABLE" /c:"CREATE TABLE" /c:"DROP TABLE" "!mysql_diff_file!" >nul
+if errorlevel 1 (
+    del /q "!mysql_diff_file!" >nul 2>nul
+    echo "[更新] 结构和 !db_type!_table.sql 一致，无需更新"
+    exit /b 0
+)
+
+echo "[更新] 执行差异 SQL: !mysql_diff_file!"
+call :mysql_import "!mysql_diff_file!"
+set "mysql_update_result=!errorlevel!"
+del /q "!mysql_diff_file!" >nul 2>nul
+exit /b !mysql_update_result!
 
 :::::------------------------------------------------------------
 :::::db_query：查询，列出所有数据库并按库名模糊匹配，打印匹配到的数据库名
