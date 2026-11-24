@@ -14,10 +14,10 @@ chcp 936 >nul
 :::::------------------------------------------------------------
 :::::数据库操作：对本地 Windows MySQL 执行命令
 :::::  功能名: db_create（建库）/ db_delete（删库）/ db_clear（清档）/ db_update（更新）
-:::::       db_export_structure（导出结构）/ db_query（查询）/ db_export（导出）/ db_import（导入）
+:::::       db_export_structure（导出结构）/ db_export_def（导出def）/ db_query（查询）/ db_export（导出）/ db_import（导入）
 :::::  第3参数只传中间那段库名（如 lizexian），实际库名按类型拼: <数据库类型>_<数据库名>_<服ID>
 :::::  SQL 取「项目目录\common\sql」下的 <数据库类型>_table.sql（db_create / db_update），db_clear 不需要 SQL 文件
-:::::  db_update 用「项目目录\common\sql\mysqldiff\.venv」里的 python 跑 mysqldiff.py，对比实际库结构和 <数据库类型>_table.sql 生成差异 SQL 再执行
+:::::  db_update 调「项目目录\common\sql\mysqldiff\dist\mysqldiff.exe」，对比实际库结构和 <数据库类型>_table.sql 生成差异 SQL 再执行
 :::::  连接信息取 exe 同级 config\config.json 的「环境部署/Local_MySql_配置」（dirpath / hostname / port / username / password）
 :::::  例: local_server_operate.bat db_create C:\data\ikun_01_cn lizexian
 :::::------------------------------------------------------------
@@ -106,6 +106,11 @@ if /i "!action!"=="db_export_structure" (
     goto :finish
 )
 
+if /i "!action!"=="db_export_def" (
+    call :export_def
+    goto :finish
+)
+
 if /i "!action!"=="db_query" (
     call :query_database
     goto :finish
@@ -146,8 +151,9 @@ echo 数据库操作（本地 Windows MySQL，SQL 取 项目目录\common\sql）:
 echo   db_create  - 建库：建「实际库名」，再导入 ^<数据库类型^>_table.sql
 echo   db_delete  - 删库：删除「实际库名」
 echo   db_clear   - 清档：保留库和表结构，清空「实际库名」里所有表的数据（TRUNCATE TABLE，不需要 SQL 文件）
-echo   db_update  - 更新：用 common\sql\mysqldiff\.venv 里的 python 跑 mysqldiff.py，对比「实际库名」结构和 ^<数据库类型^>_table.sql，生成差异 SQL 并执行
+echo   db_update  - 更新：调 common\sql\mysqldiff\dist\mysqldiff.exe，对比「实际库名」结构和 ^<数据库类型^>_table.sql，生成差异 SQL 并执行
 echo   db_export_structure - 导出结构：选服务器后用 mysqldump --no-data 把「实际库名」表结构导到 ^<数据库类型^>_table.sql（覆盖）
+echo   db_export_def - 导出def：调 common\tools\tabledefcreator\dist\creatormain.exe，把「实际库名」导出成 server\skynet\^<模块^>\src\define\MysqlTableDefine.lua
 echo   db_query   - 查询：列出所有数据库，按 数据库名 模糊匹配并打印匹配到的库名（不选类型和服ID）
 echo   db_export  - 导出：用 mysqldump 把「实际库名」的表结构和数据导到 项目目录\common\sql\backup\^<实际库名^>_^<yyyyMMddHHmm^>.sql
 echo   db_import  - 导入：选服务器后输入 项目目录\common\sql\backup 下的备份文件名，导入「实际库名」
@@ -650,6 +656,76 @@ if errorlevel 1 (
     exit /b 1
 )
 echo "[导出结构] 完成: !mysql_sql_file!"
+exit /b 0
+
+::::::------------------------------------------------------------
+::::::db_export_def：导出def，调「项目目录\common\tools\tabledefcreator\dist\creatormain.exe」，
+::::::           把「实际库名」的表结构导出成 server\skynet\<模块>\src\define\MysqlTableDefine.lua
+::::::  调用约定与 db_create / db_update 一致：第2参数=项目目录，第3参数=库名中间段，类型和服ID执行时选
+::::::  creatormain.exe 参数（跟 common\tools\tabledefcreator\tabledefcreator.bat 一致）:
+::::::      host port user password dbname 导出文件路径
+::::::  creatormain.exe 内部吞掉异常、退出码固定为 0，所以导出后检查文件是否存在且完整（结尾是 return M）
+::::::------------------------------------------------------------
+:export_def
+call :mysql_check_args
+if errorlevel 1 exit /b 1
+
+call :select_db_type
+call :select_server_id
+if errorlevel 1 exit /b 1
+
+call :compose_db_name
+
+set "creatormain_exe=!project_dir!\common\tools\tabledefcreator\dist\creatormain.exe"
+if not exist "!creatormain_exe!" (
+    echo [错误] 未找到导出工具: !creatormain_exe!
+    exit /b 1
+)
+
+call :find_def_dir
+if errorlevel 1 exit /b 1
+set "def_file=!def_dir!\MysqlTableDefine.lua"
+
+call :mysql_database_exists
+if errorlevel 1 (
+    echo [错误] 数据库不存在: !db_name!
+    exit /b 1
+)
+
+echo "[导出def] !db_name! -> !def_file!"
+"!creatormain_exe!" !mysql_hostname! !mysql_port! !mysql_username! !mysql_password! !db_name! "!def_file!"
+
+if not exist "!def_file!" (
+    echo [错误] 导出def失败，未生成文件: !def_file!
+    exit /b 1
+)
+findstr /c:"return M" "!def_file!" >nul
+if errorlevel 1 (
+    echo [错误] 导出def失败，文件不完整: !def_file!
+    exit /b 1
+)
+echo "[导出def] 完成: !def_file!"
+exit /b 0
+
+::::::------------------------------------------------------------
+::::::公共接口：定位服务端 define 目录（MysqlTableDefine.lua 的输出位置）
+::::::  server\skynet 下按模块分目录，取其中带 src\define 的那个，如 server\skynet\ikun\src\define
+::::::  出参: 变量 def_dir
+::::::------------------------------------------------------------
+:find_def_dir
+set "def_dir="
+if "!project_dir!"=="" (
+    echo [错误] 未指定项目目录
+    exit /b 1
+)
+
+for /d %%d in ("!project_dir!\server\skynet\*") do (
+    if exist "%%d\src\define" set "def_dir=%%d\src\define"
+)
+if "!def_dir!"=="" (
+    echo [错误] 未找到 define 目录: !project_dir!\server\skynet\<模块>\src\define
+    exit /b 1
+)
 exit /b 0
 
 :::::------------------------------------------------------------

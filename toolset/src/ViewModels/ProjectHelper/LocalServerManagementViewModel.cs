@@ -53,6 +53,7 @@ namespace ToolSet.ViewModels.ProjectHelper
             DropDatabaseCommand = new RelayCommand(DropDatabase);
             ClearDataCommand = new RelayCommand(ClearData);
             UpdateCommand = new RelayCommand(Update);
+            ExportDefCommand = new RelayCommand(ExportDef);
             ExportStructureCommand = new RelayCommand(ExportStructure);
             ExportCommand = new RelayCommand(Export);
             ImportCommand = new RelayCommand(Import);
@@ -132,8 +133,11 @@ namespace ToolSet.ViewModels.ProjectHelper
         /// <summary>清档：保留库和表结构，清空实际库里所有表的数据。</summary>
         public ICommand ClearDataCommand { get; }
 
-        /// <summary>更新：调 common\sql\mysqldiff.py 对比实际库和 &lt;数据库类型&gt;_table.sql，生成差异 SQL 并执行。</summary>
+        /// <summary>更新：调 common\sql\mysqldiff\dist\mysqldiff.exe 对比实际库和 &lt;数据库类型&gt;_table.sql，生成差异 SQL 并执行。</summary>
         public ICommand UpdateCommand { get; }
+
+        /// <summary>导出def：调 common\tools\tabledefcreator\dist\creatormain.exe，把实际库导出成 MysqlTableDefine.lua。</summary>
+        public ICommand ExportDefCommand { get; }
 
         /// <summary>导出结构：调 local_server_operate.bat db_export_structure，用 mysqldump 把实际库的表结构导到 common\sql\&lt;数据库类型&gt;_table.sql。</summary>
         public ICommand ExportStructureCommand { get; }
@@ -253,8 +257,11 @@ namespace ToolSet.ViewModels.ProjectHelper
         /// <summary>清档：调 local_server_operate.bat db_clear，清空实际库所有表的数据（保留库和表结构）。</summary>
         private void ClearData() => RunDatabaseAction("db_clear", ConfirmedGameDatabase);
 
-        /// <summary>更新：调 local_server_operate.bat db_update，用 mysqldiff.py 对比实际库和 &lt;数据库类型&gt;_table.sql 并执行差异 SQL。</summary>
+        /// <summary>更新：调 local_server_operate.bat db_update，用 mysqldiff.exe 对比实际库和 &lt;数据库类型&gt;_table.sql 并执行差异 SQL。</summary>
         private void Update() => RunDatabaseAction("db_update", ConfirmedGameDatabase);
+
+        /// <summary>导出def：调 local_server_operate.bat db_export_def，把实际库导出成 server\skynet\&lt;模块&gt;\src\define\MysqlTableDefine.lua。</summary>
+        private void ExportDef() => RunDatabaseAction("db_export_def", ConfirmedGameDatabase);
 
         /// <summary>导出结构：调 local_server_operate.bat db_export_structure，用 mysqldump 把实际库的表结构导到 common\sql\&lt;数据库类型&gt;_table.sql。</summary>
         private void ExportStructure() => RunDatabaseAction("db_export_structure", ConfirmedGameDatabase);
@@ -277,7 +284,7 @@ namespace ToolSet.ViewModels.ProjectHelper
         /// 数据库操作统一走 scripts/local_server_operate.bat：功能名、项目目录、数据库名，
         /// 数据库类型由脚本自己在控制台里让玩家选（1=dbserver，2=logserver）。
         /// </summary>
-        /// <param name="action">脚本功能名：db_create / db_delete / db_clear / db_update / db_export_structure / db_query / db_export / db_import。</param>
+        /// <param name="action">脚本功能名：db_create / db_delete / db_clear / db_update / db_export_structure / db_export_def / db_query / db_export / db_import。</param>
         /// <param name="databaseName">库名中间那段，如 lizexian；脚本里再按类型和服ID拼成 dbserver_lizexian_1 / logserver_lizexian_1。</param>
         private void RunDatabaseAction(string action, string databaseName)
             => _scripts.RunInConsole(
