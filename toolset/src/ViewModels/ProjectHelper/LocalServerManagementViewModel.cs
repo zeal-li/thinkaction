@@ -134,10 +134,10 @@ namespace ToolSet.ViewModels.ProjectHelper
         /// <summary>更新：调 common\sql\mysqldiff.py 对比实际库和 &lt;数据库类型&gt;_table.sql，生成差异 SQL 并执行。</summary>
         public ICommand UpdateCommand { get; }
 
-        /// <summary>导出：调 local_server_operate.bat db_export，用 mysqldump 把表结构和数据导到 common\sql\backup。</summary>
+        /// <summary>导出数据：调 local_server_operate.bat db_export，用 mysqldump 把表结构和数据导到 common\sql\backup。</summary>
         public ICommand ExportCommand { get; }
 
-        /// <summary>导入：调 local_server_operate.bat db_import，把 common\sql\backup 下的备份文件导入实际库。</summary>
+        /// <summary>导入数据：调 local_server_operate.bat db_import，把 common\sql\backup 下的备份文件导入实际库。</summary>
         public ICommand ImportCommand { get; }
 
         /// <summary>编译：在 WSL 里执行 ./server_tool.sh -o build。</summary>
@@ -252,10 +252,10 @@ namespace ToolSet.ViewModels.ProjectHelper
         /// <summary>更新：调 local_server_operate.bat db_update，用 mysqldiff.py 对比实际库和 &lt;数据库类型&gt;_table.sql 并执行差异 SQL。</summary>
         private void Update() => RunDatabaseAction("db_update", ConfirmedGameDatabase);
 
-        /// <summary>导出：调 local_server_operate.bat db_export，用 mysqldump 把实际库的表结构和数据导到 common\sql\backup。</summary>
+        /// <summary>导出数据：调 local_server_operate.bat db_export，用 mysqldump 把实际库的表结构和数据导到 common\sql\backup。</summary>
         private void Export() => RunDatabaseAction("db_export", ConfirmedGameDatabase);
 
-        /// <summary>导入：调 local_server_operate.bat db_import，选服务器并输入 common\sql\backup 下的备份文件名后导入实际库。</summary>
+        /// <summary>导入数据：调 local_server_operate.bat db_import，选服务器并输入 common\sql\backup 下的备份文件名后导入实际库。</summary>
         private void Import() => RunDatabaseAction("db_import", ConfirmedGameDatabase);
 
         private void Build() => RunServerTool("build");

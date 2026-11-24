@@ -99,12 +99,12 @@
                         MinWidth="64"
                         Margin="8,0,0,0"
                         Command="{Binding UpdateCommand}" />
-                <Button Content="导出"
+                <Button Content="导出数据"
                         Style="{StaticResource ActionButton}"
                         MinWidth="64"
                         Margin="8,0,0,0"
                         Command="{Binding ExportCommand}" />
-                <Button Content="导入"
+                <Button Content="导入数据"
                         Style="{StaticResource ActionButton}"
                         MinWidth="64"
                         Margin="8,0,0,0"
