@@ -236,8 +236,31 @@ if errorlevel 1 exit /b 1
 
 call :to_wsl_path "!skynet_dir!"
 
-call :run_server_tool start 开服
-exit /b !errorlevel!
+::::没选 allserver 就只执行选中的那个类型
+if /i not "!server_model!"=="allserver" (
+    echo "[操作] 开服 服务器类型: !server_model!"
+    set "ssh_commond=cd '!wsl_path!' && sudo ./server_tool.sh -o start -m !server_model! -n !db_name! -s !server_id!"
+    call "%~dp0sshcall_wsl.bat" "!ssh_commond!"
+    exit /b !errorlevel!
+)
+
+::::选了 allserver 就按所选分组（游戏服/公共服）的顺序逐个类型执行，任意一次失败就中止
+if /i "!server_group!"=="global" (
+    for %%i in (101) do (
+        echo "[操作] 开服 服务器类型: !global_server_model_array[%%i]!"
+        set "ssh_commond=cd '!wsl_path!' && sudo ./server_tool.sh -o start -m !global_server_model_array[%%i]! -n !db_name! -s !server_id!"
+        call "%~dp0sshcall_wsl.bat" "!ssh_commond!"
+        if errorlevel 1 exit /b !errorlevel!
+    )
+) else (
+    for %%i in (1 2 3 4) do (
+        echo "[操作] 开服 服务器类型: !game_server_model_array[%%i]!"
+        set "ssh_commond=cd '!wsl_path!' && sudo ./server_tool.sh -o start -m !game_server_model_array[%%i]! -n !db_name! -s !server_id!"
+        call "%~dp0sshcall_wsl.bat" "!ssh_commond!"
+        if errorlevel 1 exit /b !errorlevel!
+    )
+)
+exit /b 0
 
 ::::------------------------------------------------------------
 ::::stop：关服
@@ -254,8 +277,31 @@ if errorlevel 1 exit /b 1
 
 call :to_wsl_path "!skynet_dir!"
 
-call :run_server_tool stop 关服
-exit /b !errorlevel!
+::::没选 allserver 就只执行选中的那个类型
+if /i not "!server_model!"=="allserver" (
+    echo "[操作] 关服 服务器类型: !server_model!"
+    set "ssh_commond=cd '!wsl_path!' && sudo ./server_tool.sh -o stop -m !server_model! -n !db_name! -s !server_id!"
+    call "%~dp0sshcall_wsl.bat" "!ssh_commond!"
+    exit /b !errorlevel!
+)
+
+::::选了 allserver 就按所选分组（游戏服/公共服）的顺序逐个类型执行，任意一次失败就中止
+if /i "!server_group!"=="global" (
+    for %%i in (101) do (
+        echo "[操作] 关服 服务器类型: !global_server_model_array[%%i]!"
+        set "ssh_commond=cd '!wsl_path!' && sudo ./server_tool.sh -o stop -m !global_server_model_array[%%i]! -n !db_name! -s !server_id!"
+        call "%~dp0sshcall_wsl.bat" "!ssh_commond!"
+        if errorlevel 1 exit /b !errorlevel!
+    )
+) else (
+    for %%i in (1 2 3 4) do (
+        echo "[操作] 关服 服务器类型: !game_server_model_array[%%i]!"
+        set "ssh_commond=cd '!wsl_path!' && sudo ./server_tool.sh -o stop -m !game_server_model_array[%%i]! -n !db_name! -s !server_id!"
+        call "%~dp0sshcall_wsl.bat" "!ssh_commond!"
+        if errorlevel 1 exit /b !errorlevel!
+    )
+)
+exit /b 0
 
 ::::------------------------------------------------------------
 ::::status：查看
@@ -272,8 +318,31 @@ if errorlevel 1 exit /b 1
 
 call :to_wsl_path "!skynet_dir!"
 
-call :run_server_tool status 查看
-exit /b !errorlevel!
+::::没选 allserver 就只执行选中的那个类型
+if /i not "!server_model!"=="allserver" (
+    echo "[操作] 查看 服务器类型: !server_model!"
+    set "ssh_commond=cd '!wsl_path!' && sudo ./server_tool.sh -o status -m !server_model! -n !db_name! -s !server_id!"
+    call "%~dp0sshcall_wsl.bat" "!ssh_commond!"
+    exit /b !errorlevel!
+)
+
+::::选了 allserver 就按所选分组（游戏服/公共服）的顺序逐个类型执行，任意一次失败就中止
+if /i "!server_group!"=="global" (
+    for %%i in (101) do (
+        echo "[操作] 查看 服务器类型: !global_server_model_array[%%i]!"
+        set "ssh_commond=cd '!wsl_path!' && sudo ./server_tool.sh -o status -m !global_server_model_array[%%i]! -n !db_name! -s !server_id!"
+        call "%~dp0sshcall_wsl.bat" "!ssh_commond!"
+        if errorlevel 1 exit /b !errorlevel!
+    )
+) else (
+    for %%i in (1 2 3 4) do (
+        echo "[操作] 查看 服务器类型: !game_server_model_array[%%i]!"
+        set "ssh_commond=cd '!wsl_path!' && sudo ./server_tool.sh -o status -m !game_server_model_array[%%i]! -n !db_name! -s !server_id!"
+        call "%~dp0sshcall_wsl.bat" "!ssh_commond!"
+        if errorlevel 1 exit /b !errorlevel!
+    )
+)
+exit /b 0
 
 ::::------------------------------------------------------------
 ::::开服 / 关服 / 查看公共接口：让玩家选择服务器类型
@@ -340,44 +409,6 @@ if !server_id! leq 0 (
 
 echo "[选择] 服ID: !server_id!"
 exit /b 0
-
-::::------------------------------------------------------------
-::::开服 / 关服 / 查看公共接口：执行 server_tool.sh
-::::  %~1=动作（start / stop / status），%~2=动作中文名（只用于日志）
-::::  依赖全局变量 server_model / server_group / wsl_path / server_name / server_id
-::::  选 allserver 时跳过 allserver 自己，按所选分组（游戏服/公共服）逐个类型执行，任意一次失败就中止
-::::------------------------------------------------------------
-:run_server_tool
-if /i "!server_model!"=="allserver" goto :run_server_tool_all
-
-call :exec_server_tool "%~1" "!server_model!" "%~2"
-exit /b !errorlevel!
-
-:run_server_tool_all
-if /i "!server_group!"=="global" (
-    for %%i in (101) do (
-        call :exec_server_tool "%~1" "!global_server_model_array[%%i]!" "%~2"
-        if errorlevel 1 exit /b !errorlevel!
-    )
-) else (
-    for %%i in (1 2 3 4) do (
-        call :exec_server_tool "%~1" "!game_server_model_array[%%i]!" "%~2"
-        if errorlevel 1 exit /b !errorlevel!
-    )
-)
-exit /b 0
-
-::::------------------------------------------------------------
-::::开服 / 关服 / 查看公共接口：对单个服务器类型执行一次 server_tool.sh
-::::  %~1=动作（start / stop / status），%~2=服务器类型（-m），%~3=动作中文名（只用于日志）
-::::  命令交给 sshcall_wsl.bat 登录后执行；整体用双引号包住，命令里的两个与号不会被 cmd 当成命令分隔符
-::::  sudo 加在 server_tool.sh 前面，不能加在 cd 前面（cd 是 shell 内建命令，sudo 找不到它）
-::::------------------------------------------------------------
-:exec_server_tool
-echo "[操作] %~3 服务器类型: %~2"
-set "ssh_commond=cd '!wsl_path!' && sudo ./server_tool.sh -o %~1 -m %~2 -n !db_name! -s !server_id!"
-call "%~dp0sshcall_wsl.bat" "!ssh_commond!"
-exit /b !errorlevel!
 
 ::::------------------------------------------------------------
 ::::公共接口：校验项目目录并定位「源码」里的 server_tool.sh，build / rebuild / clean / release 用
@@ -449,7 +480,6 @@ for %%d in (a b c d e f g h i j k l m n o p q r s t u v w x y z) do (
 set "to_wsl_rest=!to_wsl_rest:\=/!"
 set "wsl_path=/mnt/!to_wsl_drive!!to_wsl_rest!"
 exit /b 0
-
 
 ::::------------------------------------------------------------
 ::::发布成功后打开 TortoiseSVN 提交界面，提交「项目目录\common\release\ubuntu」
