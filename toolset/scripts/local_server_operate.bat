@@ -10,7 +10,7 @@ chcp 936 >nul
 ::::项目目录 = 检出根目录\项目名，由调用方传进来，脚本里不写死项目路径
 ::::第3参数：start / stop / status 时是服务器名（server_tool.sh 的 -n），数据库操作时是库名中间段
 ::::服务器类型（-m）和服ID（-s）都不走参数，start / stop / status 时由脚本在控制台里让玩家选
-::::服务器类型选 allserver 时，脚本自己按所选分组（游戏服/公共服）的顺序逐个类型执行
+::::服务器类型选 allserver 时，脚本遍历所选分组（游戏服/公共服）已定义的类型逐个执行
 :::::------------------------------------------------------------
 :::::数据库操作：对本地 Windows MySQL 执行命令
 :::::  功能名: db_create（建库）/ db_delete（删库）/ db_clear（清档）/ db_update（更新）
@@ -27,7 +27,8 @@ set "project_dir=%~2"
 set "db_name=%~3"
 
 ::::服务器类型分两组（游戏服 game_server_model_array / 公共服 global_server_model_array），start / stop / status 执行时由玩家按序号选择
-::::顺序即 allserver 时的执行顺序，名字必须和 server_tool.sh 的 -m 取值一致
+::::加减服务器类型只改这里，start / stop / status 会自动遍历；值必须和 server_tool.sh 的 -m 取值一致
+::::选 allserver 时按变量名的字母序遍历，索引多于 9 个时建议补零（[01]…[10]），否则 10 会排在 2 前面
 set "game_server_model_array[0]=allserver"
 set "game_server_model_array[1]=dbserver"
 set "game_server_model_array[2]=gameserver"
@@ -244,18 +245,11 @@ if /i not "!server_model!"=="allserver" (
     exit /b !errorlevel!
 )
 
-::::选了 allserver 就按所选分组（游戏服/公共服）的顺序逐个类型执行，任意一次失败就中止
-if /i "!server_group!"=="global" (
-    for %%i in (101) do (
-        echo "[操作] 开服 服务器类型: !global_server_model_array[%%i]!"
-        set "ssh_commond=cd '!wsl_path!' && sudo ./server_tool.sh -o start -m !global_server_model_array[%%i]! -n !db_name! -s !server_id!"
-        call "%~dp0sshcall_wsl.bat" "!ssh_commond!"
-        if errorlevel 1 exit /b !errorlevel!
-    )
-) else (
-    for %%i in (1 2 3 4) do (
-        echo "[操作] 开服 服务器类型: !game_server_model_array[%%i]!"
-        set "ssh_commond=cd '!wsl_path!' && sudo ./server_tool.sh -o start -m !game_server_model_array[%%i]! -n !db_name! -s !server_id!"
+set "model_array_prefix=!server_group!_server_model_array"
+for /f "tokens=1,* delims==" %%a in ('set !model_array_prefix![') do (
+    if /i not "%%b"=="allserver" (
+        echo "[操作] 开服 服务器类型: %%b"
+        set "ssh_commond=cd '!wsl_path!' && sudo ./server_tool.sh -o start -m %%b -n !db_name! -s !server_id!"
         call "%~dp0sshcall_wsl.bat" "!ssh_commond!"
         if errorlevel 1 exit /b !errorlevel!
     )
@@ -285,18 +279,11 @@ if /i not "!server_model!"=="allserver" (
     exit /b !errorlevel!
 )
 
-::::选了 allserver 就按所选分组（游戏服/公共服）的顺序逐个类型执行，任意一次失败就中止
-if /i "!server_group!"=="global" (
-    for %%i in (101) do (
-        echo "[操作] 关服 服务器类型: !global_server_model_array[%%i]!"
-        set "ssh_commond=cd '!wsl_path!' && sudo ./server_tool.sh -o stop -m !global_server_model_array[%%i]! -n !db_name! -s !server_id!"
-        call "%~dp0sshcall_wsl.bat" "!ssh_commond!"
-        if errorlevel 1 exit /b !errorlevel!
-    )
-) else (
-    for %%i in (1 2 3 4) do (
-        echo "[操作] 关服 服务器类型: !game_server_model_array[%%i]!"
-        set "ssh_commond=cd '!wsl_path!' && sudo ./server_tool.sh -o stop -m !game_server_model_array[%%i]! -n !db_name! -s !server_id!"
+set "model_array_prefix=!server_group!_server_model_array"
+for /f "tokens=1,* delims==" %%a in ('set !model_array_prefix![') do (
+    if /i not "%%b"=="allserver" (
+        echo "[操作] 关服 服务器类型: %%b"
+        set "ssh_commond=cd '!wsl_path!' && sudo ./server_tool.sh -o stop -m %%b -n !db_name! -s !server_id!"
         call "%~dp0sshcall_wsl.bat" "!ssh_commond!"
         if errorlevel 1 exit /b !errorlevel!
     )
@@ -326,18 +313,11 @@ if /i not "!server_model!"=="allserver" (
     exit /b !errorlevel!
 )
 
-::::选了 allserver 就按所选分组（游戏服/公共服）的顺序逐个类型执行，任意一次失败就中止
-if /i "!server_group!"=="global" (
-    for %%i in (101) do (
-        echo "[操作] 查看 服务器类型: !global_server_model_array[%%i]!"
-        set "ssh_commond=cd '!wsl_path!' && sudo ./server_tool.sh -o status -m !global_server_model_array[%%i]! -n !db_name! -s !server_id!"
-        call "%~dp0sshcall_wsl.bat" "!ssh_commond!"
-        if errorlevel 1 exit /b !errorlevel!
-    )
-) else (
-    for %%i in (1 2 3 4) do (
-        echo "[操作] 查看 服务器类型: !game_server_model_array[%%i]!"
-        set "ssh_commond=cd '!wsl_path!' && sudo ./server_tool.sh -o status -m !game_server_model_array[%%i]! -n !db_name! -s !server_id!"
+set "model_array_prefix=!server_group!_server_model_array"
+for /f "tokens=1,* delims==" %%a in ('set !model_array_prefix![') do (
+    if /i not "%%b"=="allserver" (
+        echo "[操作] 查看 服务器类型: %%b"
+        set "ssh_commond=cd '!wsl_path!' && sudo ./server_tool.sh -o status -m %%b -n !db_name! -s !server_id!"
         call "%~dp0sshcall_wsl.bat" "!ssh_commond!"
         if errorlevel 1 exit /b !errorlevel!
     )
